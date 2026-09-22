@@ -98,6 +98,9 @@
       background:linear-gradient(135deg, rgba(255,255,255,.65), transparent 35%, rgba(121,98,76,.04) 100%);
     }
     .layer { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+    /* 所有头发素材（男的头发 / 女头发 / 女丧尸头发）都要压在眼睛之上：刘海本来就该盖住眼睛。
+       原来只写了「男的头发」，女头发没有 z-index（auto），于是女生的眼睛（z-index:1）反而压在头发上。 */
+    .npc-avatar img[src*="头发"], .mini-portrait img[src*="头发"], .portrait-wrap img[src*="头发"] { z-index:4 !important; }
     .npc-avatar .hair-layer, .mini-portrait .hair-layer { z-index:10 !important; }
     .portrait-wrap .hair-layer { z-index:4 !important; }
     .npc-avatar img[src*="圣女发型"], .npc-avatar img[src*="圣女发饰"], .mini-portrait img[src*="圣女发型"], .mini-portrait img[src*="圣女发饰"] { z-index:3 !important; }
@@ -203,8 +206,8 @@
     .range-line label { margin:0; color:var(--ink); }
     .range-line small { font:11px 'SF Pro Display','DM Mono'; text-align:right; color:var(--muted); }
     input[type=range] { appearance:none; padding:0; height:4px; background:linear-gradient(90deg, var(--teal) 50%, var(--range-track) 50%); border:0; border-radius:999px; }
-    input[type=range]::-webkit-slider-thumb { appearance:none; width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg, #ffb19d, #ff7c6a); border:2px solid rgba(255,255,255,.9); box-shadow:0 0 0 1px rgba(255,122,106,.48); }
-    input[type=range]::-moz-range-thumb { width:13px; height:13px; border-radius:50%; background:linear-gradient(135deg, #ffb19d, #ff7c6a); border:2px solid rgba(255,255,255,.9); box-shadow:0 0 0 1px rgba(255,122,106,.48); }
+    input[type=range]::-webkit-slider-thumb { appearance:none; width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg, var(--creator-accent-soft, #c3b4ea), var(--creator-accent, #8b78cf)); border:2px solid rgba(255,255,255,.9); box-shadow:0 0 0 1px rgba(139,120,207,.48); }
+    input[type=range]::-moz-range-thumb { width:13px; height:13px; border-radius:50%; background:linear-gradient(135deg, var(--creator-accent-soft, #c3b4ea), var(--creator-accent, #8b78cf)); border:2px solid rgba(255,255,255,.9); box-shadow:0 0 0 1px rgba(139,120,207,.48); }
     .hint { font-size:11px; color:var(--muted); margin:14px 0 0; }
     .trait-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .trait {
@@ -307,6 +310,17 @@
     .batch-count { color:var(--muted); font:10px 'SF Pro Display','DM Mono'; margin-right:auto; }
     .npc-row { position:relative; }
     .npc-select { position:absolute; top:8px; left:8px; z-index:4; width:16px; height:16px; accent-color:var(--teal); }
+    /* 手机/桌面统一：勾选框独立成列，不再绝对定位压在头像上；头像与正文各占一列。
+       勾选框自绘（appearance:none）：整个盒子是触摸热区，真正可见的小方框画在 content-box 里
+       （background-clip:content-box），所以既能做小做精致，点击范围又不会跟着变小。 */
+    #npcList .npc-row, #contactList .npc-row { grid-template-columns:22px 44px minmax(0,1fr); gap:8px; }
+    #npcList .npc-row > .npc-select, #contactList .npc-row > .npc-select { appearance:none; -webkit-appearance:none; position:static; grid-column:1; grid-row:1; align-self:start; width:22px; height:22px; min-height:0; padding:4px; margin:3px 0 0 1px; border:0; border-radius:10px; background-color:rgba(185,191,200,.26); background-clip:content-box; background-origin:content-box; background-repeat:no-repeat; background-position:center; background-size:11px 11px; cursor:pointer; z-index:6; }
+    #npcList .npc-row > .npc-select:checked, #contactList .npc-row > .npc-select:checked { background-color:var(--teal); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.2 8.4l3.2 3.2 6.4-6.6' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+    #npcList .npc-row > .npc-select:focus-visible, #contactList .npc-row > .npc-select:focus-visible { outline:2px solid rgba(122,224,216,.85); outline-offset:1px; }
+    #npcList .npc-row > .npc-avatar, #contactList .npc-row > .npc-avatar { grid-column:2; grid-row:1; }
+    #npcList .npc-row > .npc-main, #contactList .npc-row > .npc-main { grid-column:3; grid-row:1; }
+    /* 星标必须压在头发 / 眼眶等头像图层之上（否则会被发型盖住，手机上尤其明显） */
+    .npc-avatar .star { z-index:12 !important; }
     /* 入区申请弹窗（每 10 年一次） */
     .applicant-list { display:grid; gap:8px; max-height:42vh; overflow-y:auto; margin:10px 0; padding-right:4px; }
     .applicant-row { display:flex; align-items:center; gap:10px; padding:6px 9px; border:1px solid rgba(176,183,196,.28); border-radius:12px; background:rgba(176,183,196,.06); cursor:pointer; }
@@ -879,6 +893,48 @@
     .hotel-monitor-person { display:flex; flex-direction:column; align-items:center; gap:7px; padding:12px 8px; border:1px solid var(--line); background:linear-gradient(180deg, rgba(58,65,73,.82), rgba(39,45,52,.82)); cursor:pointer; }
     .hotel-monitor-person:hover { border-color:var(--teal); background:linear-gradient(180deg, rgba(74,82,91,.86), rgba(50,56,63,.86)); }
     .hotel-monitor-person .npc-avatar { width:68px; height:68px; }
+    /* 宾馆住客卡：只显示头像 + 名字 + 记录年月，头像/卡片点击打开个人主页，右上角可星标；不放聊天/调情等按钮 */
+    #hotelList { grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); }
+    .hotel-person { display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 8px; border:1px solid rgba(185,191,200,.14); border-radius:14px; background:linear-gradient(180deg, rgba(46,52,60,.86), rgba(33,38,45,.88)); cursor:pointer; }
+    .hotel-person:hover { border-color:var(--teal); }
+    .hotel-person .npc-avatar { width:64px; height:64px; margin-top:2px; }
+    .hotel-person .star { width:26px; height:26px; font-size:15px; top:-7px; right:-7px; }
+    .hotel-person-name { font-size:13px; }
+    .hotel-person-meta { color:var(--muted); font:10px 'SF Pro Display','DM Mono'; text-align:center; line-height:1.5; }
+    /* 手机端「行动点 / 转月 / 转年」搬到面板区上方（业主群、联系人等都在它下方），桌面端保持原来的顶部条 */
+    .mobile-actions-bar { display:none; }
+    /* 日间模式：本次新增的几处组件也要跟着换配色（夜间用深色渐变，日间用白/淡紫） */
+    html[data-theme="day"] .mobile-actions-bar {
+      border-color:rgba(148,130,178,.2);
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(244,240,250,.9));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 16px rgba(148,130,178,.1);
+    }
+    html[data-theme="day"] .mobile-actions-date { color:#57ab84; }
+    html[data-theme="day"] #npcList .npc-row > .npc-select, html[data-theme="day"] #contactList .npc-row > .npc-select { background-color:rgba(148,130,178,.2); }
+    html[data-theme="day"] #npcList .npc-row > .npc-select:checked, html[data-theme="day"] #contactList .npc-row > .npc-select:checked { background-color:var(--teal); }
+    html[data-theme="day"] #npcList .star, html[data-theme="day"] #contactList .star, html[data-theme="day"] .hotel-person .star { border-color:rgba(110,185,150,.7); }
+    html[data-theme="day"] .hotel-person {
+      border-color:rgba(148,130,178,.18);
+      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(243,239,250,.84));
+    }
+    html[data-theme="day"] .hotel-person:hover { border-color:rgba(150,130,205,.6); }
+    html[data-theme="day"] .hotel-monitor-person {
+      border-color:rgba(148,130,178,.18);
+      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(243,239,250,.84));
+    }
+    html[data-theme="day"] .hotel-monitor-person:hover { border-color:rgba(110,185,150,.6); background:linear-gradient(180deg, rgba(232,248,238,.96), rgba(228,243,236,.92)); }
+    /* 以下这些地方原来把青色写死了（点击 / 选中 / 聚焦态），日间模式统一改成紫 / 淡蓝 */
+    html[data-theme="day"] #npcList .npc-row > .npc-select:focus-visible, html[data-theme="day"] #contactList .npc-row > .npc-select:focus-visible { outline-color:rgba(150,130,205,.85); }
+    html[data-theme="day"] .applicant-row.selected { border-color:rgba(150,130,205,.6); background:rgba(140,120,200,.12); }
+    html[data-theme="day"] .applicant-portrait:hover { box-shadow:0 0 0 2px rgba(150,130,205,.5); }
+    html[data-theme="day"] .genealogy-title-link, html[data-theme="day"] .trait-entry button { border-bottom-color:rgba(150,130,205,.7); }
+    /* 手机端：导航（日记 / 业主群 / 联系人 / 宾馆 / 纪事）挪到面板下方——宫位留在最上面 */
+    .mobile-nav-bar { display:none; }
+    html[data-theme="day"] .mobile-nav-bar {
+      border-color:rgba(148,130,178,.2);
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(244,240,250,.9));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 8px 18px rgba(148,130,178,.12);
+    }
     .hotel-monitor-person strong { font-size:12px; }
       .diary-monitor-link { display:block; margin-top:8px; padding:4px 8px; border:1px solid var(--teal); background:transparent; color:var(--teal); font-size:10px; cursor:pointer; }
       .diary-monitor-link:hover { background:var(--teal); color:var(--cream); }
@@ -991,15 +1047,19 @@
       .group-head-right #groupCount { font-size:12px; }
       .group-refresh { min-height:44px; padding:11px 20px; font-size:14px; border-radius:12px; }
       /* 批次工具条：两列大按钮 */
-      #groupPanel .batch-toolbar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-      #groupPanel .batch-count { grid-column:1 / -1; margin:0; font-size:12px; }
-      #groupPanel .batch-toolbar button { min-height:44px; font-size:14px; border-radius:12px; }
+      /* 批量工具条：改成紧凑的三列小胶囊，别再占那么大地方 */
+      #groupPanel .batch-toolbar, #contactsPanel .batch-toolbar { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:10px; padding-bottom:8px; }
+      #groupPanel .batch-count, #contactsPanel .batch-count { grid-column:1 / -1; margin:0 0 2px; font-size:11px; }
+      #groupPanel .batch-toolbar button, #contactsPanel .batch-toolbar button { min-height:34px; padding:6px 4px; font-size:12px; border-radius:10px; line-height:1.2; }
       /* 居民卡片（业主群与联系人共用同一套行样式，一起改） */
       #npcList, #contactList { grid-template-columns:1fr; gap:12px; }
-      #npcList .npc-row, #contactList .npc-row { grid-template-columns:68px minmax(0,1fr); gap:12px; align-items:start; padding:12px; border-radius:18px; }
+      #npcList .npc-row, #contactList .npc-row { grid-template-columns:34px 68px minmax(0,1fr); gap:10px; align-items:start; padding:12px; border-radius:18px; }
+      /* 勾选框：34×34 触摸热区，可见的小方框只有 18px（原来是 28px），更小巧；勾选后是青色底 + 白色对勾 */
+      #npcList .npc-row > .npc-select, #contactList .npc-row > .npc-select { width:34px; height:34px; min-height:0; padding:8px; margin:2px 0 0 0; border-radius:14px; background-size:13px 13px; }
       #npcList .npc-avatar, #contactList .npc-avatar { width:68px; height:68px; }
-      #npcList .npc-select, #contactList .npc-select { width:24px; height:24px; top:8px; left:8px; }
-      #npcList .star, #contactList .star { width:32px; height:32px; font-size:18px; top:-8px; right:-8px; }
+      /* 星标：抬高到头发之上（z-index:12 见上），并加白底描边，避免深色发型上"看不见" */
+      #npcList .star, #contactList .star { width:32px; height:32px; font-size:18px; top:-8px; right:-8px; background:radial-gradient(circle at 35% 28%, rgba(255,255,255,.98), rgba(226,235,243,.96)); border:1px solid rgba(122,224,216,.8); box-shadow:0 2px 8px rgba(0,0,0,.45); color:#5d6772; }
+      #npcList .star.on, #contactList .star.on { background:linear-gradient(180deg,#ffe79c,#f0b93f); border-color:rgba(255,196,84,.95); color:#5a3c06; }
       #npcList .npc-name, #contactList .npc-name { font-size:17px; }
       #npcList .npc-meta, #contactList .npc-meta { font-size:12px; margin-top:4px; }
       #npcList .relationship, #contactList .relationship { height:7px; margin-top:7px; }
@@ -1007,9 +1067,28 @@
       #npcList .npc-actions, #contactList .npc-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
       #npcList .npc-actions button, #contactList .npc-actions button { min-height:44px; padding:10px 8px; font-size:14px; border-radius:12px; margin:0; }
       #npcList .npc-actions .npc-meta, #contactList .npc-actions .npc-meta { grid-column:1 / -1; }
+      /* 宾馆住客卡：手机两列大卡，头像 76px，星标 32px */
+      #hotelList { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      .hotel-person { padding:14px 8px; border-radius:18px; }
+      .hotel-person .npc-avatar { width:76px; height:76px; }
+      .hotel-person .star { width:32px; height:32px; font-size:18px; top:-8px; right:-8px; background:radial-gradient(circle at 35% 28%, rgba(255,255,255,.98), rgba(226,235,243,.96)); border:1px solid rgba(122,224,216,.8); box-shadow:0 2px 8px rgba(0,0,0,.45); color:#5d6772; }
+      .hotel-person .star.on { background:linear-gradient(180deg,#ffe79c,#f0b93f); border-color:rgba(255,196,84,.95); color:#5a3c06; }
+      .hotel-person-name { font-size:15px; }
+      .hotel-person-meta { font-size:11px; }
+      /* 「行动点 / 转月 / 转年」按钮条：贴在业主群 / 联系人的上方，面板内部滚动时它始终可见 */
+      .mobile-actions-bar { display:grid; gap:8px; margin:12px 0 12px; padding:10px; border-radius:16px; background:linear-gradient(180deg, rgba(56,62,70,.94), rgba(40,45,52,.96)); border:1px solid rgba(232,224,216,.14); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
+      .mobile-actions-date { font:12px 'SF Pro Display','DM Mono'; color:var(--teal); letter-spacing:.5px; }
+      .mobile-actions-bar .top-actions { display:grid; grid-template-columns:auto 1fr 1fr; gap:8px; align-items:center; width:100%; }
+      .mobile-actions-bar .top-actions button { min-height:48px; padding:10px 12px; font-size:15px; border-radius:14px; }
+      .mobile-actions-bar .top-actions .game-stat { font-size:12px; }
+      /* 导航行搬到面板下方（宫位在最上面），并吸附在屏幕底部，一眼就能切面板 */
+      .game-sidebar { grid-template-columns:1fr; }
+      .mobile-nav-bar { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-top:12px; padding:8px; border-radius:16px; position:sticky; bottom:0; z-index:8; background:linear-gradient(180deg, rgba(56,62,70,.94), rgba(40,45,52,.96)); border:1px solid rgba(232,224,216,.14); box-shadow:0 -6px 18px rgba(0,0,0,.25); }
+      .mobile-nav-bar .nav-item { justify-content:center; }
     }
     @media (max-width:480px) {
-      #npcList .npc-row, #contactList .npc-row { grid-template-columns:60px minmax(0,1fr); padding:10px; }
+      #npcList .npc-row, #contactList .npc-row { grid-template-columns:32px 58px minmax(0,1fr); padding:10px; }
+      #npcList .npc-row > .npc-select, #contactList .npc-row > .npc-select { width:32px; height:32px; padding:7px; border-radius:13px; }
       #npcList .npc-avatar, #contactList .npc-avatar { width:60px; height:60px; }
       #npcList .npc-actions button, #contactList .npc-actions button { font-size:13px; min-height:42px; }
     }
@@ -1024,7 +1103,7 @@
       --panel-strong:rgba(255,255,255,.9);
       --shadow:rgba(148,130,178,.14);
       --red:#ab8fc7;
-      --teal:#7fa98c;
+      --teal:#57ab84;
       --yellow:#ddc79a;
       --pink:#e3d2e6;
       --range-track:rgba(148,130,178,.2);
@@ -1033,7 +1112,7 @@
       color:var(--ink);
       background:
         radial-gradient(circle at 50% 16%, rgba(214,201,240,.5), transparent 24%),
-        radial-gradient(circle at 12% 10%, rgba(203,232,211,.46), transparent 26%),
+        radial-gradient(circle at 12% 10%, rgba(206,240,222,.44), transparent 26%),
         linear-gradient(180deg, #fdfbf7 0%, #f8f4f0 42%, #f4f1f7 100%);
     }
     html[data-theme="day"] * { scrollbar-color:rgba(163,148,190,.45) rgba(226,219,240,.5); }
@@ -1058,8 +1137,8 @@
     }
     html[data-theme="day"] .color-tabs { border-color:rgba(148,130,178,.2); background:rgba(235,230,245,.62); }
     html[data-theme="day"] .color-tab { color:#8e83a5; }
-    html[data-theme="day"] .color-tab:hover { color:#514866; background:rgba(127,169,140,.12); }
-    html[data-theme="day"] .color-tab.active { color:#fff; border-color:rgba(96,143,117,.6); background:linear-gradient(135deg,#7fa98c,#5f8f75); box-shadow:0 4px 12px rgba(96,143,117,.22), inset 0 1px 0 rgba(255,255,255,.45); }
+    html[data-theme="day"] .color-tab:hover { color:#514866; background:rgba(110,185,150,.14); }
+    html[data-theme="day"] .color-tab.active { color:#fff; border-color:rgba(110,185,150,.65); background:linear-gradient(135deg,#a98cc7,#5fb389); box-shadow:0 4px 12px rgba(90,150,120,.28), inset 0 1px 0 rgba(255,255,255,.45); }
     html[data-theme="day"] .dice {
       border-color:rgba(148,130,178,.22);
       background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(240,235,249,.86));
@@ -1071,10 +1150,10 @@
       background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(246,242,251,.88));
       box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 2px 8px rgba(148,130,178,.08);
     }
-    html[data-theme="day"] input:focus, html[data-theme="day"] select:focus { border-color:rgba(127,169,140,.75); box-shadow:0 0 0 3px rgba(127,169,140,.16), inset 0 1px 0 rgba(255,255,255,.9); }
+    html[data-theme="day"] input:focus, html[data-theme="day"] select:focus { border-color:rgba(150,130,205,.75); box-shadow:0 0 0 3px rgba(150,130,205,.16), inset 0 1px 0 rgba(255,255,255,.9); }
     html[data-theme="day"] select option, html[data-theme="day"] select optgroup { background:#f8f5fb; color:var(--ink); }
     html[data-theme="day"] .load-names { border-color:rgba(148,130,178,.22); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); }
-    html[data-theme="day"] .load-names:hover { background:linear-gradient(135deg,#b9a2d8,#8fbfa0); color:#fff; }
+    html[data-theme="day"] .load-names:hover { background:linear-gradient(135deg,#b9a2d8,#5fb389); color:#fff; }
     html[data-theme="day"] .fixed-age { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(243,239,250,.84)); box-shadow:inset 0 1px 0 rgba(255,255,255,.9); }
     html[data-theme="day"] .trait { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.88), rgba(243,239,250,.82)); box-shadow:inset 0 1px 0 rgba(255,255,255,.9); }
     html[data-theme="day"] .trait button:hover { background:rgba(171,143,199,.12); }
@@ -1085,7 +1164,7 @@
       box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 8px 18px rgba(148,130,178,.12);
     }
     html[data-theme="day"] .primary:hover { background:linear-gradient(135deg,#b9a2d8,#a98cc7); color:#fff; }
-    html[data-theme="day"] .birth-actions .primary { border-color:rgba(127,169,140,.6); }
+    html[data-theme="day"] .birth-actions .primary { border-color:rgba(150,130,205,.6); }
     html[data-theme="day"] .game-topbar {
       border-color:rgba(148,130,178,.18);
       background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(245,241,251,.82));
@@ -1107,7 +1186,7 @@
       border-color:rgba(148,130,178,.2);
       background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(240,235,249,.86));
     }
-    html[data-theme="day"] .district-button:hover, html[data-theme="day"] .district-button.active { border-color:rgba(127,169,140,.65); background:linear-gradient(135deg, rgba(203,232,211,.85), rgba(230,236,224,.9)); color:var(--ink); }
+    html[data-theme="day"] .district-button:hover, html[data-theme="day"] .district-button.active { border-color:rgba(110,185,150,.6); background:linear-gradient(135deg, rgba(224,216,244,.88), rgba(216,243,228,.92)); color:var(--ink); }
     html[data-theme="day"] .nav-item:hover, html[data-theme="day"] .nav-item.active { background:linear-gradient(180deg, rgba(226,216,243,.9), rgba(241,236,250,.9)); color:var(--ink); }
     html[data-theme="day"] .desktop:before { opacity:.14; }
     html[data-theme="day"] .panel {
@@ -1120,17 +1199,17 @@
     html[data-theme="day"] .panel::-webkit-scrollbar-thumb { background:linear-gradient(180deg, rgba(190,175,214,.8), rgba(163,148,190,.75)); border:2px solid rgba(226,219,240,.6); }
     html[data-theme="day"] .panel-heading, html[data-theme="day"] .batch-toolbar, html[data-theme="day"] .event-line, html[data-theme="day"] .player-info div, html[data-theme="day"] .profile-facts, html[data-theme="day"] .profile-fact { border-bottom-color:rgba(148,130,178,.16); }
     html[data-theme="day"] .panel-heading, html[data-theme="day"] .batch-toolbar { border-bottom-color:rgba(148,130,178,.16); }
-    html[data-theme="day"] .diary-entry { background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); border-left-color:rgba(127,169,140,.85); }
-    html[data-theme="day"] .diary-name-link { border-bottom-color:rgba(127,169,140,.7); }
+    html[data-theme="day"] .diary-entry { background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); border-left-color:rgba(150,130,205,.85); }
+    html[data-theme="day"] .diary-name-link { border-bottom-color:rgba(150,130,205,.7); }
     html[data-theme="day"] .npc-row { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); }
     html[data-theme="day"] .npc-actions button {
       border-color:rgba(148,130,178,.2);
       background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(240,235,249,.88));
       box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
     }
-    html[data-theme="day"] .npc-actions button:hover { background:linear-gradient(135deg,#b9a2d8,#8fbfa0); color:#fff; }
+    html[data-theme="day"] .npc-actions button:hover { background:linear-gradient(135deg,#b9a2d8,#5fb389); color:#fff; }
     html[data-theme="day"] .relationship { background:rgba(148,130,178,.14); }
-    html[data-theme="day"] .relationship i { background:linear-gradient(90deg, rgba(171,143,199,.85), rgba(127,169,140,.85)); }
+    html[data-theme="day"] .relationship i { background:linear-gradient(90deg, rgba(171,143,199,.85), rgba(95,179,137,.85)); }
     html[data-theme="day"] .star { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(240,235,249,.9)); color:rgba(120,128,140,.55); }
     html[data-theme="day"] .star.on { color:#c9a44e; }
     html[data-theme="day"] .page-actions button, html[data-theme="day"] .batch-toolbar button {
@@ -1144,9 +1223,9 @@
     html[data-theme="day"] .npc-avatar.male { border-color:#a9c6e6; background:linear-gradient(135deg,#d5ecff,#aed0fb); }
     html[data-theme="day"] .npc-avatar.female { border-color:#e8b3cc; background:linear-gradient(135deg,#ffe1ef,#f7c0da); }
     html[data-theme="day"] .retire-button { border-color:rgba(148,130,178,.24); background:linear-gradient(180deg,#d7c8ee,#c2addd); color:#443a58; }
-    html[data-theme="day"] .retire-button:hover { background:linear-gradient(135deg,#a98cc7,#8fbfa0); color:#fff; }
+    html[data-theme="day"] .retire-button:hover { background:linear-gradient(135deg,#a98cc7,#5fb389); color:#fff; }
     html[data-theme="day"] .heir-option { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); }
-    html[data-theme="day"] .heir-option:hover { border-color:rgba(127,169,140,.7); background:linear-gradient(180deg, rgba(232,240,233,.92), rgba(246,242,251,.92)); }
+    html[data-theme="day"] .heir-option:hover { border-color:rgba(110,185,150,.6); background:linear-gradient(180deg, rgba(232,248,238,.94), rgba(246,242,251,.94)); }
     html[data-theme="day"] .district-adjust-resident { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); }
     html[data-theme="day"] .district-adjust-residents, html[data-theme="day"] .event-line { border-top-color:rgba(148,130,178,.16); }
     html[data-theme="day"] .modal-backdrop { background:rgba(96,82,120,.3); backdrop-filter:blur(8px) saturate(1.05); -webkit-backdrop-filter:blur(8px) saturate(1.05); }
@@ -1176,7 +1255,7 @@
     html[data-theme="day"] .close-modal:hover { background:#d2bfe4; }
     html[data-theme="day"] .close-modal:focus-visible { outline-color:#8b6bb0; }
     html[data-theme="day"] .hotel-monitor-person { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); }
-    html[data-theme="day"] .hotel-monitor-person:hover { border-color:rgba(127,169,140,.7); background:linear-gradient(180deg, rgba(232,240,233,.94), rgba(246,242,251,.94)); }
+    html[data-theme="day"] .hotel-monitor-person:hover { border-color:rgba(110,185,150,.65); background:linear-gradient(180deg, rgba(232,248,238,.94), rgba(246,242,251,.94)); }
     html[data-theme="day"] .npc-diary-summary { border-bottom-color:rgba(148,130,178,.16); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(242,238,249,.86)); }
     html[data-theme="day"] .npc-diary-page { border-top-color:rgba(148,130,178,.16); }
     html[data-theme="day"] .npc-diary-page button { border-color:rgba(148,130,178,.2); background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(240,235,249,.86)); }
@@ -1240,8 +1319,8 @@
     html[data-theme="day"] .profile-action-row button:hover,
     html[data-theme="day"] #profileExpelButton:hover,
     html[data-theme="day"] #profileDistrictButton:hover {
-      border-color:rgba(127,169,140,.75);
-      background:linear-gradient(135deg,#dfe9d8,#cfc2e9);
+      border-color:rgba(110,185,150,.7);
+      background:linear-gradient(135deg,#e2d9f4,#d8f0e4);
       color:#2b2540;
     }
     html[data-theme="day"] .profile-layout { scrollbar-color:rgba(163,148,190,.45) rgba(226,219,240,.4); }
@@ -1288,7 +1367,69 @@
       text-shadow:none;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 6px 16px rgba(148,130,178,.2);
     }
-    html[data-theme="day"] .theme-toggle:hover { border-color:rgba(127,169,140,.75); background:linear-gradient(135deg,#e3ead9,#d5c9ec); color:#2f2944; }
+    html[data-theme="day"] .theme-toggle:hover { border-color:rgba(110,185,150,.7); background:linear-gradient(135deg,#efe9fa,#e3f6ec); color:#2f2944; }
+    /* ===== 捏人页：淡紫色系，紫（主）+ 绿（点缀） =====
+       底色、骰子、选项卡、勾选按钮、确认按钮、滑杆全部统一成这一套色；绿色只做点缀
+       （hover 描边、载入名单按钮），和游戏内日间模式的紫 + 粉绿是同一家族。 */
+    :root {
+      --creator-accent:#8b78cf;
+      --creator-accent-soft:#c3b4ea;
+      --creator-accent-deep:#6a5a9e;
+      --creator-accent-ring:rgba(139,120,207,.28);
+      --creator-green:#57ab84;
+      --creator-green-soft:#9ad3b8;
+    }
+    /* 还在捏人（游戏主界面没开）时的底色：淡紫 + 一点绿 */
+    html[data-theme="day"] body:has(#gameScreen:not(.active)) {
+      background:
+        radial-gradient(circle at 50% 14%, rgba(206,190,240,.62), transparent 26%),
+        radial-gradient(circle at 12% 10%, rgba(196,236,214,.46), transparent 28%),
+        linear-gradient(180deg, #f7f3fd 0%, #f3edfa 44%, #f1f6f2 100%);
+    }
+    html[data-theme="day"] body:has(#gameScreen:not(.active)) .portrait-column {
+      border-color:rgba(139,120,207,.2);
+      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(243,237,250,.82));
+      box-shadow:0 18px 36px rgba(139,120,207,.12), inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    html[data-theme="day"] body:has(#gameScreen:not(.active)) .portrait-wrap {
+      border-color:rgba(139,120,207,.22);
+      background:linear-gradient(135deg,#f6f0fd 0%,#fdfbf7 56%,#eef6f1 100%);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.9), 0 22px 38px rgba(139,120,207,.14);
+    }
+    .workspace .portrait-column .dice,
+    .workspace .controls .mini-dice {
+      border:1px solid rgba(255,255,255,.9);
+      background:linear-gradient(135deg,var(--creator-accent-soft),var(--creator-accent));
+      color:#fff;
+      box-shadow:0 6px 16px var(--creator-accent-ring), inset 0 1px 0 rgba(255,255,255,.45);
+    }
+    .workspace .portrait-column .dice:hover,
+    .workspace .controls .mini-dice:hover { border-color:rgba(87,171,132,.7); background:linear-gradient(135deg,#d9cff6,#9c8ada); color:#fff; }
+    .workspace .controls .color-tabs { border-color:rgba(139,120,207,.3); background:rgba(195,180,234,.16); }
+    .workspace .controls .color-tab { color:var(--muted); }
+    .workspace .controls .color-tab:hover { color:var(--creator-accent-deep); background:rgba(139,120,207,.14); }
+    .workspace .controls .color-tab.active {
+      color:#fff;
+      border-color:rgba(87,171,132,.75);
+      background:linear-gradient(135deg,var(--creator-accent-soft),var(--creator-accent));
+      box-shadow:0 4px 12px var(--creator-accent-ring), inset 0 1px 0 rgba(255,255,255,.45);
+    }
+    .workspace .controls .load-names { border-color:rgba(87,171,132,.5); }
+    .workspace .controls .load-names:hover { border-color:rgba(87,171,132,.8); background:linear-gradient(135deg,var(--creator-green-soft),var(--creator-green)); color:#fff; }
+    .workspace .controls .trait { border-color:rgba(139,120,207,.3); }
+    .workspace .controls .trait button { color:var(--creator-accent-deep); }
+    .workspace .controls .trait button:hover { background:linear-gradient(135deg,var(--creator-green-soft),var(--creator-green)); color:#fff; }
+    .workspace .controls .trait-entry button { border-bottom-color:rgba(139,120,207,.7); color:var(--creator-accent-deep); }
+    .workspace .controls .save-row .primary {
+      border-color:rgba(139,120,207,.6);
+      background:linear-gradient(135deg,var(--creator-accent-soft),var(--creator-accent));
+      color:#fff;
+      box-shadow:0 8px 20px var(--creator-accent-ring), inset 0 1px 0 rgba(255,255,255,.4);
+    }
+    .workspace .controls .save-row .primary:hover { border-color:rgba(87,171,132,.75); background:linear-gradient(135deg,#d9cff6,#9c8ada); color:#fff; }
+    .workspace .controls .range-line small { color:var(--creator-accent-deep); }
+    .workspace .controls input[type=range]::-webkit-slider-thumb { border-color:#fff; box-shadow:0 0 0 1px rgba(139,120,207,.55); }
+    .workspace .controls input[type=range]::-moz-range-thumb { border-color:#fff; box-shadow:0 0 0 1px rgba(139,120,207,.55); }
   </style>
 </head>
 <body>
@@ -1393,15 +1534,16 @@
         </nav>
         <section class="desktop">
           <div class="desktop-title">幸福辖区 // COMMUNITY DESKTOP</div>
+          <div class="mobile-actions-bar" id="mobileActionsBar"><span class="mobile-actions-date" id="mobileDateLabel">1 年 1 月</span></div>
           <div class="desktop-content">
             <div class="panel" id="diaryPanel">
               <div class="panel-heading"><h2>主控日记</h2><span id="diaryPageLabel">1 年 1 月</span></div>
-              <label class="diary-filter" for="diaryFilter">筛选日记：<select id="diaryFilter"><option value="all">全部</option><option value="恋爱">恋爱</option><option value="结婚">结婚</option><option value="怀孕">怀孕</option><option value="宝宝出生啦">宝宝出生啦</option><option value="离婚">离婚</option><option value="亲人去世">亲人去世</option><option value="友人去世">友人去世</option><option value="日常">日常</option><option value="秘密">秘密</option></select></label>
+              <label class="diary-filter" for="diaryFilter">筛选日记：<select id="diaryFilter"><option value="all">全部</option><option value="婚姻">婚姻</option><option value="怀孕">怀孕</option><option value="宝宝出生啦">宝宝出生啦</option><option value="去世">去世</option><option value="日常">日常</option><option value="秘密">秘密</option></select></label>
               <div id="diaryEntries"></div>
               <div class="page-actions"><button id="firstDiary">到最前</button><button id="previousDiary">&lt; 上个月</button><button id="nextDiary">下个月 &gt;</button><button id="lastDiary">到最后</button></div>
             </div>
             <div class="panel" id="groupPanel" hidden>
-              <div class="panel-heading"><h2>业主群 · <span id="districtLabel">中宫</span></h2><span class="group-head-right"><span id="groupCount">0 人</span><button class="load-names group-refresh" id="refreshResidents" type="button" title="换一批居民（每页 4 人）">刷新</button></span></div>
+              <div class="panel-heading"><h2>业主群 · <span id="districtLabel">中宫</span></h2><span class="group-head-right"><span id="groupCount">0 人</span><button class="load-names group-refresh" id="refreshResidents" type="button" title="换一批居民（每页 4 人）">换一批</button></span></div>
               <div class="batch-toolbar" data-batch-scope="group"><span class="batch-count">已选择 0 人</span><button type="button" data-batch-action="selectAll">全选本页</button><button type="button" data-batch-action="clear">清空选择</button><button type="button" data-batch-action="star" disabled>批量星标</button><button type="button" data-batch-action="expel" disabled>批量驱逐</button><button type="button" data-batch-action="district" disabled>批量换辖区</button></div>
               <div class="npc-list" id="npcList"></div>
             </div>
@@ -1417,11 +1559,13 @@
             </div>
             <div class="panel" id="eventsPanel" hidden>
               <div class="panel-heading"><h2>小区纪事</h2><span id="eventMonthLabel">本月</span></div>
+              <label class="diary-filter" for="eventFilter">筛选纪事：<select id="eventFilter"><option value="all">全部</option><option value="寻亲">寻亲 · 认亲</option><option value="改名">改名</option><option value="医院抱错">医院抱错</option><option value="乱伦">乱伦</option></select></label>
               <div id="eventList"></div>
               <div class="page-actions"><button id="previousEvent">&lt; 更早</button><button id="nextEvent">更新 &gt;</button></div>
             </div>
           </div>
         </section>
+        <nav class="mobile-nav-bar" id="mobileNavBar" aria-label="游戏功能"></nav>
         <aside class="player-card">
           <div class="player-card-head"><h2 id="playerNameCard">黄毛</h2><small>主控 / 20</small></div>
           <div class="mini-portrait" id="miniPortrait" title="查看主控族谱"></div>
@@ -1442,7 +1586,7 @@
     <section class="genealogy-modal npc-diary-modal" role="dialog" aria-modal="true" aria-labelledby="npcDiaryTitle">
       <div class="modal-head"><h2 id="npcDiaryTitle">NPC 日记</h2><button class="close-modal" id="closeNpcDiary" aria-label="关闭">×</button></div>
       <div class="npc-diary-summary" id="npcDiarySummary"></div>
-      <label class="diary-filter" for="npcDiaryFilter">筛选日记：<select id="npcDiaryFilter"><option value="all">全部</option><option value="恋爱">恋爱</option><option value="结婚">结婚</option><option value="怀孕">怀孕</option><option value="宝宝出生啦">宝宝出生啦</option><option value="离婚">离婚</option><option value="亲人去世">亲人去世</option><option value="友人去世">友人去世</option><option value="日常">日常</option><option value="秘密">秘密</option></select></label>
+      <label class="diary-filter" for="npcDiaryFilter">筛选日记：<select id="npcDiaryFilter"><option value="all">全部</option><option value="婚姻">婚姻</option><option value="怀孕">怀孕</option><option value="宝宝出生啦">宝宝出生啦</option><option value="去世">去世</option><option value="日常">日常</option><option value="秘密">秘密</option></select></label>
       <div class="npc-diary-page"><button id="firstNpcDiary">到最前</button><button id="previousNpcDiary">&lt;</button><span id="npcDiaryPeriod">1 年 1 月</span><button id="nextNpcDiary">&gt;</button><button id="lastNpcDiary">到最后</button></div>
       <div class="npc-diary-list" id="npcDiaryEntries"></div>
       <div class="page-actions"><button id="openNpcGenealogy">查看族谱</button></div>
@@ -1453,7 +1597,7 @@
       <div class="modal-head"><h2 id="profileTitle">个人主页</h2><button class="close-modal" id="closeProfile" type="button" aria-label="关闭">×</button></div>
       <div class="profile-layout">
         <aside class="profile-sidebar"><div class="profile-avatar" id="profileAvatar"></div><div class="profile-action-row"><button class="profile-expel-button" id="profileExpelButton" type="button">驱逐 -5</button><button class="profile-district-button" id="profileDistrictButton" type="button">更换辖区</button></div><div class="profile-header-row"><h3 class="profile-name" id="profileName"></h3><div class="profile-current-district" id="profileDistrict">当前辖区：中宫</div></div><dl class="profile-facts"><div class="profile-fact"><dt>年龄</dt><dd id="profileAge"></dd></div><div class="profile-fact"><dt>配偶</dt><dd id="profileSpouse"></dd></div><div class="profile-fact"><dt>特质</dt><dd id="profileTraits"></dd></div></dl><div class="profile-relations"><div class="profile-relation-label">父亲</div><div class="profile-relation-list" id="profileFather"></div><div class="profile-relation-label">母亲</div><div class="profile-relation-list" id="profileMother"></div><div class="profile-relation-label">子女</div><div class="profile-relation-list" id="profileChildren"></div><div class="profile-relation-label">族谱</div><div class="profile-relation-list"><button class="profile-action-button" id="profileGenealogyLink" type="button">查看族谱</button></div><div class="profile-relation-label">日记</div><div class="profile-relation-list"><button class="profile-action-button" id="profileDiaryLink" type="button">查看日记</button></div></div></aside>
-        <section class="profile-content"><div class="panel-heading"><h2>日记</h2><span id="profileDiaryPeriod"></span></div><label class="diary-filter" for="profileDiaryFilter">筛选日记：<select id="profileDiaryFilter"><option value="all">全部</option><option value="恋爱">恋爱</option><option value="结婚">结婚</option><option value="怀孕">怀孕</option><option value="宝宝出生啦">宝宝出生啦</option><option value="离婚">离婚</option><option value="亲人去世">亲人去世</option><option value="友人去世">友人去世</option><option value="日常">日常</option><option value="秘密">秘密</option></select></label><div id="profileDiaryEntries"></div><div class="page-actions"><button id="firstProfileDiary">到最前</button><button id="previousProfileDiary">&lt; 上个月</button><button id="nextProfileDiary">下个月 &gt;</button><button id="lastProfileDiary">到最后</button></div></section>
+        <section class="profile-content"><div class="panel-heading"><h2>日记</h2><span id="profileDiaryPeriod"></span></div><label class="diary-filter" for="profileDiaryFilter">筛选日记：<select id="profileDiaryFilter"><option value="all">全部</option><option value="婚姻">婚姻</option><option value="怀孕">怀孕</option><option value="宝宝出生啦">宝宝出生啦</option><option value="去世">去世</option><option value="日常">日常</option><option value="秘密">秘密</option></select></label><div id="profileDiaryEntries"></div><div class="page-actions"><button id="firstProfileDiary">到最前</button><button id="previousProfileDiary">&lt; 上个月</button><button id="nextProfileDiary">下个月 &gt;</button><button id="lastProfileDiary">到最后</button></div></section>
       </div>
     </section>
   </div>
@@ -1753,7 +1897,7 @@
       if (birthdayLabel) birthdayLabel.textContent = `${birthYear} 年 1 月 1 日`;
     }
     document.getElementById('month').addEventListener('change', refreshDays); document.getElementById('age').addEventListener('change', syncBirthdayFromAge); document.getElementById('month').value=1; refreshDays(); document.getElementById('day').value=1; syncBirthdayFromAge();
-    function bindRange(id, output, callback) { const input=document.getElementById(id), label=document.getElementById(output); const update=()=>{ const value=Number(input.value); label.textContent=(value>=0?'+':'')+value; input.style.background=`linear-gradient(90deg, var(--teal) ${(value+Number(input.max))/(Number(input.max)-Number(input.min))*100}%, rgba(164,176,188,.25) 0)`; callback(value); }; input.addEventListener('input',update); update(); }
+    function bindRange(id, output, callback) { const input=document.getElementById(id), label=document.getElementById(output); const update=()=>{ const value=Number(input.value); label.textContent=(value>=0?'+':'')+value; input.style.background=`linear-gradient(90deg, var(--creator-accent, #8b78cf) ${(value+Number(input.max))/(Number(input.max)-Number(input.min))*100}%, rgba(87,171,132,.2) 0)`; callback(value); }; input.addEventListener('input',update); update(); }
     let hairHue=0,hairLight=0,hairSat=0; let colorMode='hair'; function applyHair(){ const tint=Math.max(0,35+hairSat*.65); const saturation=Math.max(0,160+hairSat*2.4); document.documentElement.style.setProperty('--hair-filter',`sepia(${tint}%) saturate(${saturation}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLight/2}%)`); }
     function setColorMode(mode){ colorMode=mode; document.querySelectorAll('[data-color-mode]').forEach(tab=>tab.classList.toggle('active',tab.dataset.colorMode===mode)); const lightnessInput=document.getElementById('lightness'); lightnessInput.min=mode==='hair'?-200:-100; lightnessInput.max=mode==='hair'?200:100; const values=mode==='hair'?[hairHue,hairLight,hairSat]:[state.eyeHue,state.eyeLightness,state.eyeSaturation]; ['hue','lightness','saturation'].forEach((id,index)=>{const input=document.getElementById(id);input.value=values[index];input.dispatchEvent(new Event('input'));}); }
     bindRange('hue','hueValue',v=>{if(colorMode==='hair'){hairHue=v;applyHair();}else{state.eyeHue=v;refreshCreatorEyeLayers();}}); bindRange('lightness','lightnessValue',v=>{if(colorMode==='hair'){hairLight=v;applyHair();}else{state.eyeLightness=v;refreshCreatorEyeLayers();}}); bindRange('saturation','saturationValue',v=>{if(colorMode==='hair'){hairSat=v;applyHair();}else{state.eyeSaturation=v;refreshCreatorEyeLayers();}}); bindRange('skin','skinValue',v=>{document.documentElement.style.setProperty('--skin-filter',`brightness(${100+v/2}%)`); refreshCreatorEyeLayers();}); document.querySelectorAll('[data-color-mode]').forEach(tab=>tab.addEventListener('click',()=>setColorMode(tab.dataset.colorMode))); setColorMode('hair');
@@ -2326,10 +2470,32 @@
       person.formerNames.push(value);
       if(person.formerNames.length>4)person.formerNames=person.formerNames.slice(-4);
     }
-    function normalizeDiaryEventType(type) { if(type==='分手'||type==='成为恋人')return '恋爱'; if(type==='丧偶'||type==='爱人（配偶）去世')return '亲人去世'; if(type==='朋友去世')return '友人去世'; return type; }
-    function getDiaryEventType(text) { const value=String(text); if(!value)return null; if(diaryEventTypes.has(value)){const mapped=diaryEventTypes.get(value);return normalizeDiaryEventType(Array.isArray(mapped)?mapped[0]:mapped);} if(/婚姻出轨|婚姻期间.*出轨|婚姻外.*出轨/.test(value))return '婚姻出轨'; if(/恋爱出轨/.test(value))return '恋爱出轨'; if(/宝宝出生|孩子出生|生下|母子平安|父子平安|顺利生产|母女平安/.test(value))return '宝宝出生啦'; if(/秘密|私生子|炮友|只剩下身体|孩子他都不认/.test(value))return '秘密'; if(/配偶.*去世|成为了丧偶之人|丧偶/.test(value))return '亲人去世'; if(/朋友.*去世|失去了朋友|失去.*恋人|失去.*炮友|爱人.*去世/.test(value))return '友人去世'; if(/离婚|婚姻走到了尽头|婚姻因为.*破裂/.test(value))return '离婚'; if(/分手|成为了恋人|成为恋人|正式成为了恋人/.test(value))return '恋爱'; if(/怀孕|怀上|临产|生产/.test(value))return '怀孕'; if(/结婚|结为夫妻|接受了.*求婚/.test(value))return '结婚'; if(/去世|离世|死亡|母子双亡|父子双亡|母亲死亡|父亲死亡|被驱逐/.test(value))return '亲人去世'; return '日常'; }
+    /* 日记分类合并：结婚 / 离婚 / 恋爱 / 分手 统一归入「婚姻」；
+       各种关系（配偶、亲人、朋友、恋人、炮友、仇人、兄弟姐妹、孙辈、祖辈…）的去世统一归入「去世」。
+       只合并“分类名”，日记正文、监控按钮、纪事内容都不受影响。 */
+    function normalizeDiaryEventType(type) {
+      const value=String(type||'');
+      if(value==='分手'||value==='成为恋人'||value==='恋爱'||value==='结婚'||value==='离婚'||value==='求婚'||value==='婚姻')return '婚姻';
+      if(/去世|离世|死亡|丧命|丧偶|双亡|失去/.test(value))return '去世';
+      return value;
+    }
+    function getDiaryEventType(text) {
+      const value=String(text);
+      if(!value)return null;
+      if(diaryEventTypes.has(value)){const mapped=diaryEventTypes.get(value);return normalizeDiaryEventType(Array.isArray(mapped)?mapped[0]:mapped);}
+      if(/婚姻出轨|婚姻期间.*出轨|婚姻外.*出轨/.test(value))return '婚姻出轨';
+      if(/恋爱出轨/.test(value))return '恋爱出轨';
+      /* 死亡判定放在「秘密」之前：像「失去了炮友」这种既是关系又是死亡的文本，应该算去世 */
+      if(/去世|离世|死亡|丧命|母子双亡|父子双亡|母亲死亡|父亲死亡|成为了丧偶之人|丧偶|失去了(朋友|恋人|炮友|仇人|亲人|爱人|兄弟|姐妹|子女|儿子|女儿|孩子|父亲|母亲|丈夫|妻子|祖父|祖母|外公|外婆|孙子|孙女)/.test(value))return '去世';
+      if(/宝宝出生|孩子出生|生下|母子平安|父子平安|顺利生产|母女平安/.test(value))return '宝宝出生啦';
+      if(/秘密|私生子|炮友|只剩下身体|孩子他都不认/.test(value))return '秘密';
+      if(/离婚|婚姻走到了尽头|婚姻因为.*破裂|分手|成为了恋人|成为恋人|正式成为了恋人|结婚|结为夫妻|接受了.*求婚/.test(value))return '婚姻';
+      if(/怀孕|怀上|临产|生产/.test(value))return '怀孕';
+      if(/被驱逐/.test(value))return '被驱逐';
+      return '日常';
+    }
     function getDiaryEventTypes(text) { const value=String(text);if(diaryEventTypes.has(value)){const mapped=diaryEventTypes.get(value);const types=Array.isArray(mapped)?mapped:[mapped];return types.map(normalizeDiaryEventType);}const type=getDiaryEventType(value);return type?[type]:[]; }
-    function matchesDiaryFilter(text,filter) { const types=getDiaryEventTypes(text); return filter==='出轨'?types.includes('恋爱出轨')||types.includes('婚姻出轨'):types.includes(filter); }
+    function matchesDiaryFilter(text,filter) { if(!filter||filter==='all')return true; const types=getDiaryEventTypes(text); return filter==='出轨'?types.includes('恋爱出轨')||types.includes('婚姻出轨'):types.includes(filter); }
     function classifyDeathDiaries() {
       const deceased=getAllPeople().filter(person=>person&&person.alive===false);
       const classify=(text,owner)=>{
@@ -2341,7 +2507,7 @@
         if(!dead)return;
         const spouseDeath=value.includes(dead.name)&&/配偶|爱人|成为了丧偶之人|丧偶/.test(value)&&owner&&value.includes(owner.name);
         const familyDeath=owner&&dead&&owner!==dead&&typeof areBloodRelated==='function'&&areBloodRelated(owner,dead);
-        const deathType='亲人去世';
+        const deathType='去世';
         diaryEventTypes.set(value,deathType);
       };
       Object.values(game.diary||{}).flat().forEach(text=>classify(text,game.player));
@@ -2355,7 +2521,7 @@
     function renderDiaryEntry(entry) { const year=Number(entry.year||game.year);const month=Number(entry.month||game.month);const types=getDiaryEventTypes(entry.text);const monitorButton=types.includes('婚姻出轨')||types.includes('恋爱出轨')?`<button type="button" class="diary-monitor-link" data-monitor-year="${year}" data-monitor-month="${month}">查看当月监控</button>`:'';return `<div class="diary-entry"><time>${entry.date||dateText(year,month)}</time>${renderDiaryText(entry.text)}${monitorButton}</div>`; }
     function renderDiary() { const key=currentKey(game.diaryView.year,game.diaryView.month); document.getElementById('diaryPageLabel').textContent=dateText(game.diaryView.year,game.diaryView.month); const filter=document.getElementById('diaryFilter')?.value||'all'; const entries=filter==='all'?(game.diary[key]||[]).map(text=>({year:game.diaryView.year,month:game.diaryView.month,date:dateText(game.diaryView.year,game.diaryView.month),text})):getAllDiaryEntries().filter(entry=>matchesDiaryFilter(entry.text,filter)); const visibleEntries=entries.length?sortDiaryEntriesNewestFirst(entries):[{year:game.diaryView.year,month:game.diaryView.month,date:dateText(game.diaryView.year,game.diaryView.month),text:filter==='all'?'这个月还没有写下什么。':'没有找到符合筛选条件的日记。'}]; document.getElementById('diaryEntries').innerHTML=visibleEntries.map(renderDiaryEntry).join(''); }
     function getFirstDiaryMonth(person=null) { const source=person&&person.id!=='player'?(person.npcDiary||[]).map(entry=>({year:Number(entry.year),month:Number(entry.month)})):Object.keys(game.diary||{}).map(key=>{const [year,month]=key.split('-').map(Number);return {year,month};}); const valid=source.filter(entry=>entry.year>=1&&entry.month>=1);if(!valid.length)return {year:1,month:1};return valid.sort((first,second)=>first.year-second.year||first.month-second.month)[0]; }
-    function renderEvents() { const key=currentKey(game.eventView.year,game.eventView.month); document.getElementById('eventMonthLabel').textContent=dateText(game.eventView.year,game.eventView.month); const events=game.events[key]||[]; document.getElementById('eventList').innerHTML=events.length?events.map(event=>`<div class="event-line"><time>${event.name}</time><span>${event.text}</span></div>`).join(''):'<p class="contact-empty">这个月还没有星标居民留下纪事。</p>'; const isCurrent=game.eventView.year===game.year&&game.eventView.month===game.month; document.getElementById('nextEvent').disabled=isCurrent; }
+    function renderEvents() { const key=currentKey(game.eventView.year,game.eventView.month); document.getElementById('eventMonthLabel').textContent=dateText(game.eventView.year,game.eventView.month); const events=game.events[key]||[]; document.getElementById('eventList').innerHTML=events.length?events.map(event=>`<div class="event-line"><time>${event.name}</time><span>${event.text}</span></div>`).join(''):'<p class="contact-empty">这个月小区里风平浪静，没有寻亲、抱错之类的大事发生。</p>'; const isCurrent=game.eventView.year===game.year&&game.eventView.month===game.month; document.getElementById('nextEvent').disabled=isCurrent; }
     function updateGameHeader() { document.getElementById('gameDate').textContent=dateText(); document.getElementById('actionPoints').textContent=`行动点 ${game.points} / 15`; }
     function renderAll() { updateGameHeader(); renderNpcList(); renderContacts(); renderDiary(); renderEvents(); }
     function addEvent(npc,text) { const key=currentKey(); if(!game.events[key])game.events[key]=[]; game.events[key].push({name:npc.name,text:normalizePlayerNameText(text)}); }
@@ -2389,7 +2555,7 @@
     const normalizeLegacyDeathCauseProcess=processResidents;
     processResidents=()=>{normalizeLegacyDeathCauseProcess();game.npcs.forEach(npc=>{if(npc.deathCause==='月度意外离世')npc.deathCause=randomDeathCause();});};
     function deathNarrative(npc) { const pronoun=npc.gender==='男'?'他':'她'; if(npc.age>=65)return `${npc.name} 在 ${npc.age} 岁这一年安静地走完了人生，家人陪着${pronoun}度过了最后的时光。`; if(npc.age>=56)return `${npc.name} 的身体渐渐衰弱，在一个寻常的月份里平静地离世了。`; return `${npc.name} 的生命停在了 ${npc.age} 岁，邻居们后来还常常想起${pronoun}。`; }
-    function processResidents() { const yearBoundaryKey=currentKey(); if(game.month===1&&game._yearAgeIncrementKey===yearBoundaryKey)return; if(game.month===1){game._yearAgeIncrementKey=yearBoundaryKey;game.npcs.forEach(npc=>{if(!npc.alive)return;npc.age++;});} game.npcs.forEach(npc=>{ if(!npc.alive)return; if(npc.pregnancyMonths>0){npc.pregnancyMonths--;const pregnancyMonth=9-npc.pregnancyMonths;if(pregnancyMonth<=3&&Math.random()<.01){npc.pregnant=false;npc.pregnancyFather=null;clearPregnancySnapshot(npc);addDiary(`${npc.name} 怀孕早期发生流产。`);addNpcDiary(npc,'怀孕早期没有保住孩子。');}else if(npc.pregnancyMonths===1){npc.inLabor=true;addDiary(`${npc.name} 进入临产期。`);addNpcDiary(npc,'进入了临产期，家里开始为生产做准备。');}else if(npc.pregnancyMonths===0){/* 父不详时绝不能默认扣到主控头上（会让主控凭空多出孩子）；这里用 null，交给「不详父亲」那套流程处理 */const father=npc.pregnancyFather||null;const childGender=rollBirthGender(npc,father);const child=makeChildNpc(npc,father,childGender);const childNameText=child.name?`，取名为${child.name}`:'';const difficult=!(isFatedFixedNpc(npc)&&Number(npc.age)<50)&&Math.random()<.03;let birthText='';if(difficult){const outcome=Math.random();if(outcome<.1){npc.alive=false;npc.deathCause=npc.gender==='男'?'难产：父子双亡':'难产：母子双亡';child.alive=false;birthText=`${npc.name} 难产，${npc.gender==='男'?'父子':'母子'}双亡${childNameText}。`; }else if(outcome<.3){npc.alive=false;npc.deathCause=npc.gender==='男'?'难产：父亲死亡':'难产：母亲死亡';game.npcs.push(child);birthText=`${npc.name} 难产去世，孩子平安出生${childNameText}。`; }else if(outcome<.5){child.alive=false;npc.children.push(child);birthText=`${npc.name} 难产，孩子没有保住，但${npc.gender==='男'?'父亲':'母亲'}平安${childNameText}。`; }else{npc.children.push(child);game.npcs.push(child);birthText=`${npc.name} 难产后${npc.gender==='男'?'父子':'母子'}平安，生下了一个${childGender}孩${childNameText}。`;}}else{npc.children.push(child);game.npcs.push(child);birthText=`${npc.name} 顺利生下了一个${childGender}孩${childNameText}。`;}npc.birthCount++;npc.lastBirthKey=currentKey();npc.pregnant=false;npc.inLabor=false;npc.pregnancyFather=null;clearPregnancySnapshot(npc);addDiary(birthText);/* 王之权柄让男性受孕时，孕育者本人这一条要带上「（因王之权柄作用已分娩）」标记
+    function processResidents() { const yearBoundaryKey=currentKey(); if(game.month===1&&game._yearAgeIncrementKey===yearBoundaryKey)return; if(game.month===1){game._yearAgeIncrementKey=yearBoundaryKey;game.npcs.forEach(npc=>{if(!npc.alive)return;npc.age++;});} game.npcs.forEach(npc=>{ if(!npc.alive)return; if(npc.pregnancyMonths>0){npc.pregnancyMonths--;const pregnancyMonth=9-npc.pregnancyMonths;if(pregnancyMonth<=3&&Math.random()<.01){npc.pregnant=false;npc.pregnancyFather=null;clearPregnancySnapshot(npc);addDiary(`${npc.name} 怀孕早期发生流产。`);addNpcDiary(npc,'怀孕早期没有保住孩子。');}else if(npc.pregnancyMonths===1){npc.inLabor=true;addDiary(`${npc.name} 进入临产期。`);addNpcDiary(npc,'进入了临产期，家里开始为生产做准备。');}else if(npc.pregnancyMonths===0){/* 父不详时绝不能默认扣到主控头上（会让主控凭空多出孩子）；这里用 null，交给「不详父亲」那套流程处理 */const father=npc.pregnancyFather||null;const childGender=rollBirthGender(npc,father);const child=makeChildNpc(npc,father,childGender);const childNameText=child.name?`，取名为${child.name}`:'';const difficult=!(isFatedFixedNpc(npc)&&Number(npc.age)<50)&&Math.random()<.03;let birthText='';if(difficult){const outcome=Math.random();if(outcome<.1){npc.alive=false;npc.deathCause=npc.gender==='男'?'难产：父子双亡':'难产：母子双亡';child.alive=false;birthText=`${npc.name} 难产，${npc.gender==='男'?'父子':'母子'}双亡${childNameText}。`; }else if(outcome<.3){npc.alive=false;npc.deathCause=npc.gender==='男'?'难产：父亲死亡':'难产：母亲死亡';game.npcs.push(child);birthText=`${npc.name} 难产去世，孩子平安出生${childNameText}。`; }else if(outcome<.5){child.alive=false;npc.children.push(child);birthText=`${npc.name} 难产，孩子没有保住，但${npc.gender==='男'?'父亲':'母亲'}平安${childNameText}。`; }else{npc.children.push(child);game.npcs.push(child);birthText=`${npc.name} 生产时有些凶险，好在${npc.gender==='男'?'父子':'母子'}平安，生下了一个${childGender}孩${childNameText}。`;}}else{npc.children.push(child);game.npcs.push(child);birthText=`${npc.name} 顺利生下了一个${childGender}孩${childNameText}。`;}npc.birthCount++;npc.lastBirthKey=currentKey();npc.pregnant=false;npc.inLabor=false;npc.pregnancyFather=null;clearPregnancySnapshot(npc);addDiary(birthText);/* 王之权柄让男性受孕时，孕育者本人这一条要带上「（因王之权柄作用已分娩）」标记
    （annotateRoyalPregnancyDiary 的 phase='分娩' 本来就是为这里准备的，之前一直没人用） */addNpcDiary(npc,annotateRoyalPregnancyDiary(birthText,npc,'分娩'));if(npc.starred)addEvent(npc,birthText);/* 孩子自己的日记里也要留下一笔出生记录（孕育者难产去世时换成对应的说法）；孩子没活下来就不写 */if(child.alive!==false&&game.npcs.includes(child)){const bearerWord=npc.gender==='男'?'父亲':'母亲';const childBirthText=npc.alive!==false?`我出生了，${bearerWord}是${npc.name}。`:`我出生了，可${bearerWord}${npc.name}为了生我离开了我。`;diaryEventTypes.set(childBirthText,'宝宝出生啦');addNpcDiary(child,childBirthText);}
 /* 另一位家长（母亲生孩子时的父亲 / 王之权柄男孕育时的母亲）也要有这一笔：
    原来只写给孕育者、主控日记和孩子自己，父亲那边的日记里整件事像没发生过。
@@ -2740,7 +2906,7 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
     function romanceAllowed(first,second) { /* 命定专属（圣女×圣骑士）：除了彼此，谁都不能进入恋爱/调情/结婚 */ if(isFatedReservedForOther(first,second.id)||isFatedReservedForOther(second,first.id))return false; const female=first.gender==='女'?first:second;const male=first.gender==='男'?first:second;const firstMarriageAffair=hasCurrentSpouse(first)&&String(first.spouseId)!==String(second.id);const secondMarriageAffair=hasCurrentSpouse(second)&&String(second.spouseId)!==String(first.id);return sameDistrict(first,second)&&!isRelationshipCooldownActive(first,second)&&first.alive!==false&&second.alive!==false&&first.gender!==second.gender&&first.age>=18&&second.age>=18&&!areBloodRelated(first,second)&&canTakeAnotherLover(first,second.id)&&canTakeAnotherLover(second,first.id)&&(firstMarriageAffair||!hasExclusiveLover(first,second.id))&&(secondMarriageAffair||!hasExclusiveLover(second,first.id)); }
     function residentRelationshipEndText(first,second) { return `${first.name}和${second.name}因为长期没有互动，决定离婚。双方办理手续时都没有多说一句话。`; }
     function npcRelationAffinity(first,second) { return getNpcRelation(first,second).affinity||0; }
-    function tryNpcIntimacy(first,second,relation,reciprocal) { /* 命定专属：不与他人亲热 */ if(isFatedReservedForOther(first,second.id)||isFatedReservedForOther(second,first.id))return false; const female=first.gender==='女'?first:second;const male=first.gender==='男'?first:second;if(!female||female.pregnant||female.lastBirthKey===currentKey()||female.age<18||female.age>50)return false;const casual=relation.casualPartner===true||reciprocal.casualPartner===true||Number(first.affinity)<0||Number(second.affinity)<0;if(!casual){relation.affinity=Math.min(100,relation.affinity+randomBetween(10,15));reciprocal.affinity=Math.min(100,reciprocal.affinity+randomBetween(10,15));}const marriageAffair=(hasCurrentSpouse(first)&&String(first.spouseId)!==String(second.id))||(hasCurrentSpouse(second)&&String(second.spouseId)!==String(first.id));const loveAffairContext=!marriageAffair&&getLoveAffairContext(first,second);const affairVictim=marriageAffair?(hasCurrentSpouse(first)&&String(first.spouseId)!==String(second.id)?findAnyPerson(first.spouseId):findAnyPerson(second.spouseId)):loveAffairContext&&loveAffairContext.victim;if(marriageAffair||loveAffairContext){const affairType=marriageAffair?'婚姻出轨':'恋爱出轨';const affairText=marriageAffair?`${first.name}和${second.name}发生了婚姻出轨：在已有婚姻期间越过了边界，与婚姻外的人发生了关系。`:`${loveAffairContext.cheater.name}和${loveAffairContext.outsider.name}发生了关系，不过${loveAffairContext.victim.name}似乎被人欺骗，自己还不自知……`;recordAffairDiaries(affairText,affairType,[first,second,loveAffairContext&&loveAffairContext.victim],affairVictim);}if(Math.random()<getPregnancyChance(female)){female.pregnant=true;female.pregnancyMonths=9;female.pregnancyFather=male;stampPregnancyGenotype(female,male&&male.id,female.id);recordPregnancyDiary(female,male);}return true;}
+    function tryNpcIntimacy(first,second,relation,reciprocal) { /* 命定专属：不与他人亲热 */ if(isFatedReservedForOther(first,second.id)||isFatedReservedForOther(second,first.id))return false; const female=first.gender==='女'?first:second;const male=first.gender==='男'?first:second;if(!female||female.pregnant||female.lastBirthKey===currentKey()||female.age<18)return false;const casual=relation.casualPartner===true||reciprocal.casualPartner===true||Number(first.affinity)<0||Number(second.affinity)<0;if(!casual){relation.affinity=Math.min(100,relation.affinity+randomBetween(10,15));reciprocal.affinity=Math.min(100,reciprocal.affinity+randomBetween(10,15));}const marriageAffair=(hasCurrentSpouse(first)&&String(first.spouseId)!==String(second.id))||(hasCurrentSpouse(second)&&String(second.spouseId)!==String(first.id));const loveAffairContext=!marriageAffair&&getLoveAffairContext(first,second);const affairVictim=marriageAffair?(hasCurrentSpouse(first)&&String(first.spouseId)!==String(second.id)?findAnyPerson(first.spouseId):findAnyPerson(second.spouseId)):loveAffairContext&&loveAffairContext.victim;if(marriageAffair||loveAffairContext){const affairType=marriageAffair?'婚姻出轨':'恋爱出轨';const affairText=marriageAffair?`${first.name}和${second.name}发生了婚姻出轨：在已有婚姻期间越过了边界，与婚姻外的人发生了关系。`:`${loveAffairContext.cheater.name}和${loveAffairContext.outsider.name}发生了关系，不过${loveAffairContext.victim.name}似乎被人欺骗，自己还不自知……`;recordAffairDiaries(affairText,affairType,[first,second,loveAffairContext&&loveAffairContext.victim],affairVictim);}if(Math.random()<getPregnancyChance(female)){female.pregnant=true;female.pregnancyMonths=9;female.pregnancyFather=male;stampPregnancyGenotype(female,male&&male.id,female.id);recordPregnancyDiary(female,male);}return true;}
     socializeResidents=()=>{const residents=game.npcs.filter(npc=>npc.alive&&npc.age>0);const residentsById=new Map(residents.map(person=>[String(person.id),person]));residents.forEach(first=>{const intimateCounts=new Map();
       /* 候选池：配偶 / 恋人 / 炮友 / 上月互动对象必定在场（否则「长期不互动」会把正常夫妻误判成分手），
          再随机补最多 12 人。原来是对全体排序（O(N² log N)/月），这是人口一多就卡顿的大头。 */
@@ -3032,7 +3198,7 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
           next=next.replace(new RegExp(oldNameText,'g'),child.name);
           next=next.replace(new RegExp(`取名为${oldNameText}`,'g'),`取名为${child.name}`);
         }
-        if(!/取名为/.test(next)&&/生下了|孩子平安出生|难产后母子平安|难产，孩子没有保住|难产，母子双亡|难产去世|顺利生下了/.test(next)){
+        if(!/取名为/.test(next)&&/生下了|孩子平安出生|顺利生产|顺利生下|生产时|难产/.test(next)){
           next=next.replace(/([。！？。])(?!.*取名为)/,`，取名为${child.name}。`);
           next=next.replace(/\s+$/,'');
           if(!/取名为/.test(next))next=`${next}，取名为${child.name}。`;
@@ -3503,7 +3669,7 @@ markRelationshipInteraction(first,second);/* 居民之间也要记「最后互�
     processResidents=()=>{const pregnancies=new Map();game.npcs.forEach(mother=>{if(mother.pregnant&&mother.pregnancyFather){const father=mother.pregnancyFather;pregnancies.set(String(mother.id),{father,conceivedMarried:!!mother.pregnancyConceivedMarried,withOtherSpouse:!!mother.pregnancyConceivedWithOtherSpouse,ended:!!mother.pregnancyRelationshipEnded,fatherAlive:father.alive!==false});}});const childrenBefore=new Map(game.npcs.map(mother=>[String(mother.id),new Set((mother.children||[]).map(child=>String(child.id)))]));originalProcessResidentsWithBirthRules();pregnancies.forEach((record,motherId)=>{const mother=game.npcs.find(item=>String(item.id)===motherId);if(!mother)return;const oldIds=childrenBefore.get(motherId)||new Set();(mother.children||[]).filter(child=>!oldIds.has(String(child.id))).forEach(child=>{const father=record.father;const fatherId=father&&father.id?String(father.id):'';const ended=record.ended||record.conceivedMarried&&!mother.married;const posthumous=!record.fatherAlive;/* 遗腹子（生父在出生前去世）：默认领回、与婚内生子同等待遇——不算私生子、父母记录齐全、走婚生的取名流程，
    只是额外保留「遗腹子」特质（isPosthumous，见下面那行与 3933 的收口）。所以遗腹子一律不走私生子分支。 */const playerPrivate=fatherId==='player'&&!mother.married;const privateChild=!posthumous&&(record.withOtherSpouse||playerPrivate);child.pregnancyOrigin=fatherId==='player'?'player':'resident';child.pregnancyConceivedMarried=record.conceivedMarried;child.isPosthumous=posthumous;child.isPrivateChild=privateChild;child.fatherUnknown=privateChild&&mother.gender!=='男';child.illegitimate=privateChild;if(privateChild)child.parentIds=(child.parentIds||[]).filter(id=>String(id)!==fatherId);if(fatherId==='player'){if(posthumous){/* 主控在孕期内去世的遗腹子：孩子仍记在已故主控名下（默认认下、不走私生子分支），
    但取名不再问已故的人 —— 由继承人替他/她取名（下面统一排进待决队列）。 */
-child.birthDecisionType='married';child.isPrivateChild=false;child.fatherUnknown=false;child.illegitimate=false;child.biologicalFatherId='player';game.playerChildren=game.playerChildren||[];if(!game.playerChildren.some(item=>String(item.id)===String(child.id)))game.playerChildren.push(child);if(game.player)game.player.children=game.playerChildren;}else{child.parentIds=[mother.id,'player'];child.biologicalFatherId='player';child.birthDecisionType=privateChild?'private':'married';if(!game.pendingBirths.some(pending=>String(pending.child.id)===String(child.id)))game.pendingBirths.push({mother,child});game.playerChildren=game.playerChildren.filter(item=>String(item.id)!==String(child.id));}}if(posthumous&&!privateChild){child.fatherUnknown=false;child.illegitimate=false;child.parentIds=[mother.id,fatherId];const formerPlayerFather=!!father&&father!==game.player&&(father.retired===true||String(father.id).startsWith('former-player-'));/* 生父是「已交接权柄的前任主控」：孩子不进现任主控的子女名单（npc.lover 兜底可能误塞进来） */
+child.birthDecisionType='married';child.isPrivateChild=false;child.fatherUnknown=false;child.illegitimate=false;child.biologicalFatherId='player';game.playerChildren=game.playerChildren||[];if(!game.playerChildren.some(item=>String(item.id)===String(child.id)))game.playerChildren.push(child);if(game.player)game.player.children=game.playerChildren;}else{child.parentIds=[mother.id,'player'];child.biologicalFatherId='player';child.birthDecisionType=privateChild?'private':'married';if(!game.pendingBirths.some(pending=>String(pending.child.id)===String(child.id)))game.pendingBirths.push({mother,child});game.playerChildren=game.playerChildren.filter(item=>String(item.id)!==String(child.id));}}if(posthumous&&!privateChild){child.fatherUnknown=false;child.illegitimate=false;child.parentIds=[mother.id,fatherId];/* 遗腹子也要进父亲的族谱（父亲已故，但父子关系要留下） */if(father&&typeof addChildToParentList==='function')addChildToParentList(father,child);const formerPlayerFather=!!father&&father!==game.player&&(father.retired===true||String(father.id).startsWith('former-player-'));/* 生父是「已交接权柄的前任主控」：孩子不进现任主控的子女名单（npc.lover 兜底可能误塞进来） */
 if(formerPlayerFather){game.playerChildren=(game.playerChildren||[]).filter(item=>String(item.id)!==String(child.id));}
 if(fatherId==='player'||formerPlayerFather){/* 主控家的遗腹子：由继承人取名（排进待决队列，交接完成后弹窗） */
 child.inheritedDecision=true;child.inheritedFromId=fatherId;child.inheritedFromName=(father&&father.name)||'前任主控';game.pendingBirths=game.pendingBirths||[];if(!game.pendingBirths.some(pending=>String(pending.child.id)===String(child.id)))game.pendingBirths.push({mother,child});}else if(father){/* 居民之间：遗腹子没人需要追问，出生时就直接把名字定下来，并写进母亲的日记 */
@@ -3568,26 +3734,25 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     const relationshipUpgradeInteract=interact;
     interact=(npc,action)=>{const pointsBefore=game.points;relationshipUpgradeInteract(npc,action);if(npc&&game.points<pointsBefore&&(action==='chat'||action==='flirt')&&Number(npc.age)>=18&&Number(npc.affinity)>=70&&npc.relations&&npc.relations[game.player.id]){const relation=npc.relations[game.player.id];relation.casualPartner=false;relation.lover=true;npc.lover=true;renderAll();}};
     /* ===== 孕育名额：按“孕育者”计算 —— 谁亲自怀孕，就占谁的名额 =====
-       ① 孕育者名下的【存活】孩子不足 4 个时，孕率只由年龄决定，不受孩子数影响（前 4 胎不受限）；
-       ② 第 4 个存活孩子之后概率骤降（基准 ×0.0005）：25 岁 20% 基准 → 0.01%/次，也就是
-          “第 5 个基本靠运气”；第 5 个之后再乘 0.0005（约 0.000005%/次）→ 第 6 个及以后几乎不会出现。
-          实测（按每孕育者每月约 10 次尝试、38 年育龄模拟）：约 68% 的孕育者一生正好 4 个孩子，
-          其余 5 个，不会出现 6 个及以上；只维持一个配偶（每月约 2 次）时约 92% 停在 4 个；
-       ③ 只统计存活的孩子（person.children 里 alive!==false 的），夭折、流产、难产没保住的孩子不占名额，可以再生；
-       ④ 与年龄孕率不冲突：年龄给出基准孕率（60 岁及以上 0%、56–59 岁 3%、其余 20%），
-          孩子数只在基准上做乘法衰减，两者叠加而不是互相覆盖；年龄越大基准越低，50/56 岁以上本就更难怀孕。
-       ⑤ 想调松紧只改下面两个常量即可：CHILD_SOFT_LIMIT（几个孩子之内不衰减）、CHILD_DECAY_FACTOR（每多一个存活孩子的衰减系数，
-          例如改成 0.002 会有约 20% 的孕育者生到 5 个，改成 0.0001 则几乎人人正好 4 个）。 */
-    const CHILD_SOFT_LIMIT = 4;
-    const CHILD_DECAY_FACTOR = .0005;
+       ① 孕率 = 年龄基准 × 孩子数档位（两档相乘，见 getPregnancyChance）：
+          · 孩子数档位：前 3 胎（存活孩子 0～2 个）= ×1；第 4 个孩子（3 个时）×0.5；第 5 个及以后（≥4 个）×0.25。
+            也就是 18～55 岁这一档对应：前 3 胎 20%/次、第 4 胎 10%/次、之后 5%/次（按你说的数字）。
+          · 年龄基准（“衰老导致的孕率”）见 getAgePregnancyChance：18–55 岁 20%、56–59 岁 3%、60 岁及以上 0%。
+            所以 56–59 岁再乘档位就是 3% / 1.5% / 0.75%。
+       ② 亲热本身只要求成年（18+，见 tryNpcIntimacy），不再有 50 岁的上限；
+          但 55 岁以上每次亲热有「牡丹花下」的猝死概率（见 ELDER_INTIMACY_DEATH_RATES）。
+       ③ 只统计存活的孩子（person.children 里 alive!==false 的），夭折、流产、难产没保住的孩子不占名额，可以再生。
+       ④ 想调松紧只改下面几个常量：CHILD_SOFT_LIMIT 一代的档位写死在 getChildCountPregnancyFactor 里，
+          ELDER_INTIMACY_DEATH_RATES 控制老年猝死概率。 */
+    const CHILD_COUNT_FACTORS = { softLimit: 3, fourth: .5, beyond: .25 };
     const getLivingChildrenCount = person => (person && person.children || []).filter(child => child && child.alive !== false).length;
     const getAgePregnancyChance = person => { const age = Number(person && person.age) || 0; return age >= 60 ? 0 : age >= 56 ? .03 : .2; };
+    const getChildCountPregnancyFactor = count => count >= CHILD_COUNT_FACTORS.softLimit + 1 ? CHILD_COUNT_FACTORS.beyond : count === CHILD_COUNT_FACTORS.softLimit ? CHILD_COUNT_FACTORS.fourth : 1;
     const getPregnancyChance = person => {
       if (!person) return 0;
       const base = getAgePregnancyChance(person);
       if (base <= 0) return 0;
-      const extra = getLivingChildrenCount(person) - (CHILD_SOFT_LIMIT - 1);
-      return extra > 0 ? base * Math.pow(CHILD_DECAY_FACTOR, extra) : base;
+      return base * getChildCountPregnancyFactor(getLivingChildrenCount(person));
     };
     const hasRoyalAuthority=person=>!!(person&&person.royalAuthority===true);
     function getChildSurname(mother,father,child=null) {
@@ -4017,6 +4182,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       diaryEventTypes.set(text,'宝宝出生啦');
       addNpcDiary(child,text);
       if(child.id==='player')addDiary(text);
+      recordCommunityEvent(child,text,'寻亲');
       const fatherRejectText=`${child.name}是我的亲生孩子，但我拒绝认亲。`;
       diaryEventTypes.set(fatherRejectText,'宝宝出生啦');
       if(father.id==='player')addDiary(fatherRejectText);else addNpcDiary(father,fatherRejectText);
@@ -4043,6 +4209,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       diaryEventTypes.set(childText,'宝宝出生啦');
       addNpcDiary(father, recognitionText);
       addNpcDiary(child, childText);
+      recordCommunityEvent(child, childText,'寻亲');
       if (father.id === 'player') addDiary(recognitionText);
       if (child.id === 'player') addDiary(childText);
       /* 通知另一位家长：普通私生子通知母亲；权柄孩子通知孕育者（代孕的男方，孩子一直跟着他） */
@@ -4396,7 +4563,57 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     function isCurrentMonthResidentAffair(npc){return !!npc&&String(npc.id)!=='player'&&(npc.npcDiary||[]).some(entry=>{const text=String(entry.text||'');return Number(entry.year)===Number(game.year)&&Number(entry.month)===Number(game.month)&&isResidentAffairDiaryText(text)&&text.includes(npc.name)&&!text.includes('主控');});}
     function getRecentResidentAffairResidents(year=game.year,month=game.month){const residents=new Map();const targetMonthIndex=monthIndex(year,month);const isExact=arguments.length>0;game.npcs.filter(npc=>npc.alive&&String(npc.id)!=='player'&&npc.npcDiary).forEach(npc=>{const affair=(npc.npcDiary||[]).some(entry=>{const text=String(entry.text||'');const entryMonthIndex=monthIndex(Number(entry.year),Number(entry.month));const inRange=isExact?entryMonthIndex===targetMonthIndex:targetMonthIndex-entryMonthIndex>=0&&targetMonthIndex-entryMonthIndex<12;return inRange&&isResidentAffairDiaryText(text)&&text.includes(npc.name)&&!text.includes('主控');});if(affair)residents.set(String(npc.id),npc);});return [...residents.values()];}
     function renderHotelMonitor(year=null,month=null){const list=document.getElementById('hotelMonitorList');if(!list)return;const hasDate=year!==null&&month!==null;const residents=hasDate?getRecentResidentAffairResidents(Number(year),Number(month)):getRecentResidentAffairResidents();document.getElementById('hotelMonitorTitle').textContent=hasDate?`宾馆监控 · ${dateText(Number(year),Number(month))}`:'宾馆监控 · 近 1 年';list.innerHTML='';if(!residents.length){list.innerHTML=`<p class="contact-empty">${hasDate?`${dateText(Number(year),Number(month))}没有发现居民出轨记录。`:'近 1 年没有发现居民出轨记录。'}</p>`;return;}residents.forEach(npc=>{const item=document.createElement('button');item.type='button';item.className='hotel-monitor-person';item.title=`查看${npc.name}的资料`;item.append(createAvatar(npc,true));const name=document.createElement('strong');name.textContent=npc.name;item.append(name);item.addEventListener('click',()=>{document.getElementById('hotelMonitorBackdrop').classList.remove('open');openProfile(npc);});list.appendChild(item);});}
-    function renderHotelResidents(){const list=document.getElementById('hotelList');if(!list)return;const residents=game.npcs.filter(npc=>npc.alive&&isCurrentMonthResidentAffair(npc));document.getElementById('hotelCount').textContent=`${residents.length} 人`;list.innerHTML='';if(!residents.length){list.innerHTML='<p class="contact-empty">这个月还没有居民入住小区宾馆。</p>';return;}residents.forEach(npc=>{const row=renderNpcRow(npc);const metas=row.querySelectorAll('.npc-meta');if(metas[0])metas[0].textContent=`${npc.age}岁 · 宾馆住客`;if(metas[1])metas[1].textContent='本月居民出轨';list.appendChild(row);});}
+    /* 宾馆住客：日记/纪事里出现过的居民出轨记录都会列在这里（含往年月份）；以前只列「本月住客」，
+       于是日记说某年某月有人出轨、进宾馆却显示没有人。居民死亡后不再显示，避免出现「已故住客」。 */
+    function isResidentAffairEntry(npc,entry){
+      const text=String(entry&&entry.text||'');
+      if(!text||text.includes('主控')||!text.includes(npc.name))return false;
+      return isResidentAffairDiaryText(text)||/出轨|偷情|偷腥|开房|发生了关系|炮友/.test(text);
+    }
+    function getResidentAffairRecords(){
+      const records=[];
+      game.npcs.filter(npc=>npc.alive&&String(npc.id)!=='player').forEach(npc=>{
+        const entries=(npc.npcDiary||[]).filter(entry=>isResidentAffairEntry(npc,entry));
+        if(!entries.length)return;
+        const latest=entries.slice().sort((first,second)=>monthIndex(Number(second.year),Number(second.month))-monthIndex(Number(first.year),Number(first.month)))[0];
+        records.push({npc,year:Number(latest.year),month:Number(latest.month),count:entries.length});
+      });
+      return records.sort((first,second)=>monthIndex(second.year,second.month)-monthIndex(first.year,first.month));
+    }
+    function renderHotelResidents(){
+      const list=document.getElementById('hotelList');
+      if(!list)return;
+      const records=getResidentAffairRecords();
+      const countEl=document.getElementById('hotelCount');
+      if(countEl)countEl.textContent=`${records.length} 人`;
+      list.innerHTML='';
+      if(!records.length){list.innerHTML='<p class="contact-empty">还没有发现居民出轨记录。等日记或小区纪事里出现记录后，这里就会出现对应的人。</p>';return;}
+      records.forEach(record=>{
+        const card=document.createElement('div');
+        card.className='hotel-person';
+        card.dataset.id=String(record.npc.id);
+        const avatar=createAvatar(record.npc,true);
+        avatar.title=`查看${record.npc.name}的个人主页`;
+        card.append(avatar);
+        const name=document.createElement('b');
+        name.className='hotel-person-name';
+        name.textContent=record.npc.name;
+        const meta=document.createElement('small');
+        meta.className='hotel-person-meta';
+        meta.textContent=`${record.year}年${record.month}月 · ${record.count>1?`出轨 ${record.count} 次`:'出轨记录'}`;
+        card.append(name,meta);
+        card.addEventListener('click',()=>openProfile(record.npc));
+        list.appendChild(card);
+      });
+    }
+    /* 监控弹窗默认看「近 1 年」；若近 1 年没有记录但更早有，给出去「小区宾馆」页看全部记录的提示 */
+    const hotelMonitorWithHint=renderHotelMonitor;
+    renderHotelMonitor=(year=null,month=null)=>{
+      hotelMonitorWithHint(year,month);
+      const list=document.getElementById('hotelMonitorList');
+      if(year!==null&&month!==null)return;
+      if(list&&!list.querySelector('.hotel-monitor-person'))list.innerHTML='<p class="contact-empty">近 1 年没有发现居民出轨记录。更早的记录请到「小区宾馆」页查看。</p>';
+    };
     const retirementAwareRenderAllWithHotel=renderAll;
     renderAll=()=>{retirementAwareRenderAllWithHotel();updateGroupCountText();renderHotelResidents();renderPlayerCard();};
     document.getElementById('viewHotelMonitor').addEventListener('click',()=>{renderHotelMonitor();document.getElementById('hotelMonitorBackdrop').classList.add('open');});
@@ -4628,8 +4845,9 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         const claimedByPlayer=child.privateFatherRecognized===true;
         const awaitingDecision=child.birthDecisionType==='private'||child.birthDecisionType==='married'||child.birthDecisionType==='orphan'||pendingChildIds.has(String(child.id));
         /* 认领过的、以及还在等主控做出生决定的孩子绝不清洗 —— 否则玩家永远认领不了自己的私生子（连出生弹窗都会被掐掉）。
-           交接权柄后归到新主控名下的孩子（playerChildProven）同样不能清洗，否则传代就会丢孩子。 */
-        if(!hasPlayerParent||royalPlayerChild||claimedByPlayer||awaitingDecision||child.playerChildProven===true||explicitPlayerFather&&diaryEvidence)return;
+           交接权柄后归到新主控名下的孩子（playerChildProven）同样不能清洗，否则传代就会丢孩子。
+           医院抱错抱回来的孩子（hospitalSwitched）是「特意换过的家长关系」，更不能被当成来路不明清掉。 */
+        if(!hasPlayerParent||royalPlayerChild||claimedByPlayer||awaitingDecision||child.playerChildProven===true||child.hospitalSwitched===true||explicitPlayerFather&&diaryEvidence)return;
         child.parentIds=(child.parentIds||[]).filter(id=>String(id)!==playerId);
         /* biologicalFatherId 是「真实生父」的历史记录（私生子寻亲要用），这里只摘家长关系，不再删除它 */
         child.birthDecisionType=undefined;
@@ -4707,10 +4925,18 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         const offenders=getIntimatePartnerIds(person).map(id=>findAnyPerson(id)).filter(partner=>partner&&partner!==person&&isIntimatePair(person,partner)&&areBloodRelated(person,partner));
         if(!offenders.length)return;
         offenders.forEach(partner=>clearIntimacyBetween(person,partner));
+        /* 同一组「亲人变情人」只写一次日记：不清这个去重键的话，他们每个月重新变成炮友/恋人，
+           就会每个月再写一条一模一样的乱伦揭晓（当事人日记刷屏）。 */
+        const offenderKey=offenders.map(partner=>String(partner.id)).sort().join('|');
+        person.kinshipIncestDiaryKeys=person.kinshipIncestDiaryKeys||[];
+        if(person.kinshipIncestDiaryKeys.includes(offenderKey))return;
+        person.kinshipIncestDiaryKeys.push(offenderKey);
+        if(person.kinshipIncestDiaryKeys.length>8)person.kinshipIncestDiaryKeys=person.kinshipIncestDiaryKeys.slice(-8);
         const names=offenders.map(partner=>partner.name);
         const text=names.length>1?`${person.name}寻亲后发现，${names.join('、')}竟然都是自己的亲生亲人，这些关系构成了乱伦，全部被迫结束。`:`${person.name}寻亲后发现，${names[0]}竟然是自己的亲生亲人，两人的关系构成了乱伦。这段关系被迫结束。`;
         diaryEventTypes.set(text,'秘密');
         [person,...offenders].forEach(target=>{if(target.id==='player')addDiary(text);else addNpcDiary(target,text);});
+        if(typeof recordCommunityEvent==='function')recordCommunityEvent(person,text,'乱伦');
       }finally{kinshipIntimacyChecking=false;}
     }
     function checkKinshipIntimacyForAll(){ getAllPeople().forEach(target=>checkKinshipIntimacy(target)); }
@@ -4768,6 +4994,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         const text=`${child.name}三十岁时开始寻亲，终于找回了自己的亲生父母；${other.name}也被动交换回了亲生父母。寻亲结果必然认回。`;
         diaryEventTypes.set(text,'宝宝出生啦');
         [child,other].forEach(person=>{if(person.id==='player')addDiary(text);else addNpcDiary(person,text);});
+        recordCommunityEvent(child,text,'医院抱错');
       });
     }
     const finalBirthConsistencyProcess=processResidents;
@@ -5187,16 +5414,16 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         (partnersBefore.get(String(dead.id))||[]).filter(partner=>partner.alive!==false&&String(dead.spouseId)!==String(partner.id)).forEach(partner=>{
           const relation=dead.relations&&dead.relations[partner.id];
           const reciprocal=partner.relations&&partner.relations[dead.id];
-          /* 炮友去世也要写进日记：文案点名「炮友」（分类仍是「友人去世」），不再一律写成「失去了朋友」 */
+          /* 炮友去世也要写进日记：文案点名「炮友」，分类统一归入「去世」 */
           const isCasualPartner=!!((relation&&relation.casualPartner===true)||(reciprocal&&reciprocal.casualPartner===true));
           const text=isCasualPartner?`${dead.name}去世了，${partner.name}失去了炮友。`:`${dead.name}去世了，${partner.name}失去了朋友。`;
-          diaryEventTypes.set(text,'友人去世');
+          diaryEventTypes.set(text,'去世');
           if(partner.id==='player')addDiary(text);else addNpcDiary(partner,text);
         });
-        /* 仇人（好感度为负）去世：同样写进日记（既不算「亲人去世」也不算「友人去世」，归入日常） */
+        /* 仇人（好感度为负）去世：同样写进日记，分类也是「去世」（不再算日常） */
         (enemiesBefore.get(String(dead.id))||[]).filter(enemy=>enemy.alive!==false&&String(dead.spouseId)!==String(enemy.id)).forEach(enemy=>{
           const text=`${dead.name}去世了，${enemy.name}失去了仇人。`;
-          diaryEventTypes.set(text,'日常');
+          diaryEventTypes.set(text,'去世');
           if(enemy.id==='player')addDiary(text);else addNpcDiary(enemy,text);
         });
         dead.relationshipDeathDiaryRecorded=true;
@@ -6145,6 +6372,961 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     function toggleTheme(){applyTheme(document.documentElement.dataset.theme==='day'?'night':'day');}
     themeToggleButtons.forEach(button=>button.addEventListener('click',toggleTheme));
     applyTheme(document.documentElement.dataset.theme==='day'?'day':'night');
+    /* ===== 头像/素材加载提速：异步解码 + 懒加载 + 常用素材预热 + 隐藏面板不渲染 =====
+       诊断：素材是 127 张 500×500 的 RGBA PNG（每张解码后位图约 1MB），而业主群首屏一次就要建 60~70 个
+       <img>；之前既没有 loading/decoding 提示、也没有预热，所以每张图都要"磁盘读 + 主线程解码"一次，
+       表现出来就是头像要刷一会儿才出来。这里做四件事：图片异步解码、列表头像懒加载、
+       捏人阶段预热通用五官、宾馆面板隐藏时不重复渲染。 */
+    function markAvatarImageLoading(root,eager){
+      if(!root||!root.querySelectorAll)return;
+      root.querySelectorAll('img').forEach(image=>{
+        if(image.getAttribute('decoding')===null)image.decoding='async';
+        if(!eager&&image.getAttribute('loading')===null)image.loading='lazy';
+      });
+    }
+    const assetFriendlyCreateAvatar=createAvatar;
+    createAvatar=(npc,small=false)=>{
+      const wrap=assetFriendlyCreateAvatar(npc,small);
+      markAvatarImageLoading(wrap,false);
+      return wrap;
+    };
+    /* 主控自己的大头像与侧栏小头像是首屏可见的，只做异步解码、不加懒加载 */
+    const markEagerAvatarImages=()=>{
+      markAvatarImageLoading(document.getElementById('portrait'),true);
+      markAvatarImageLoading(document.getElementById('miniPortrait'),true);
+    };
+    markEagerAvatarImages();
+    window.addEventListener('load',markEagerAvatarImages);
+    /* 宾馆面板 hidden 时不必在每次 renderAll 里重建整份住客列表 */
+    const panelAwareHotelRender=renderHotelResidents;
+    renderHotelResidents=()=>{const panel=document.getElementById('hotelPanel');if(panel&&panel.hidden)return;panelAwareHotelRender();};
+    const panelAwareShowPanel=showPanel;
+    showPanel=id=>{panelAwareShowPanel(id);if(id==='hotelPanel')panelAwareHotelRender();};
+    /* 预热：捏人阶段用空闲时段分批把「通用五官」读进浏览器缓存，进游戏时头像基本秒出 */
+    (function warmupAvatarAssets(){
+      const files=[];
+      const push=(prefix,count)=>{for(let index=1;index<=count;index++)files.push(`${prefix}${index}.png`);};
+      push('男的脸型',8);push('男的头发',8);push('男的眉毛',7);push('男的鼻子',8);push('男的嘴',7);
+      push('女脸型',6);push('女头发',8);push('女眉毛',6);push('女鼻子',10);push('女嘴',8);
+      push('男通用眼睛/男的眼眶',7);push('女通用眼睛/女眼眶',6);
+      ['男眼白.png','男虹膜.png','女眼白.png','女虹膜.png','男婴儿.png','女婴儿.png','皱纹1.png','皱纹2.png','皱纹3.png','皱纹4.png','配饰库痣1.png','配饰库痣2.png'].forEach(name=>files.push(name));
+      let index=0;
+      const idle=window.requestIdleCallback?(callback=>window.requestIdleCallback(callback,{timeout:600})):(callback=>setTimeout(callback,120));
+      const step=()=>{
+        const end=Math.min(index+5,files.length);
+        for(;index<end;index++){const image=new Image();image.decoding='async';image.src=files[index];}
+        if(index<files.length)idle(step);
+      };
+      if(document.readyState==='complete')idle(step);else window.addEventListener('load',()=>idle(step));
+    })();
+    /* ===== 手机端把「行动点 / 转月 / 转年」搬到面板区上方 =====
+       窄屏时 .top-actions 会移进 #mobileActionsBar（业主群 / 联系人 / 宾馆等面板都在它下面），
+       看列表时不必再滚回页面顶部；桌面端仍旧留在原来的顶部条，位置与样式都不变。 */
+    const mobileActionsQuery=window.matchMedia('(max-width:700px)');
+    const topActionsElement=document.querySelector('.game-topbar .top-actions');
+    const mobileActionsBar=document.getElementById('mobileActionsBar');
+    const gameTopbarElement=document.querySelector('.game-topbar');
+    const syncMobileActions=()=>{
+      if(!topActionsElement||!mobileActionsBar||!gameTopbarElement)return;
+      const target=mobileActionsQuery.matches?mobileActionsBar:gameTopbarElement;
+      if(topActionsElement.parentElement!==target)target.appendChild(topActionsElement);
+      const label=document.getElementById('mobileDateLabel');
+      if(label&&typeof dateText==='function')label.textContent=dateText();
+    };
+    syncMobileActions();
+    /* 手机端：把导航（日记 / 业主群 / 联系人 / 宾馆 / 纪事）从侧栏搬到面板下方，宫位留在最上面 */
+    const mobileNavBar=document.getElementById('mobileNavBar');
+    const gameSidebarElement=document.querySelector('.game-sidebar');
+    const gameNavItems=[].slice.call(document.querySelectorAll('.game-sidebar .nav-item'));
+    const syncMobileNav=()=>{
+      if(!mobileNavBar||!gameSidebarElement||!gameNavItems.length)return;
+      const target=mobileActionsQuery.matches?mobileNavBar:gameSidebarElement;
+      gameNavItems.forEach(item=>{if(item.parentElement!==target)target.appendChild(item);});
+    };
+    syncMobileNav();
+    const syncMobileLayout=()=>{syncMobileActions();syncMobileNav();};
+    if(typeof mobileActionsQuery.addEventListener==='function')mobileActionsQuery.addEventListener('change',syncMobileLayout);
+    else if(typeof mobileActionsQuery.addListener==='function')mobileActionsQuery.addListener(syncMobileLayout);
+    const legacyHeaderUpdate=updateGameHeader;
+    updateGameHeader=()=>{
+      legacyHeaderUpdate();
+      const label=document.getElementById('mobileDateLabel');
+      if(label&&typeof dateText==='function')label.textContent=dateText();
+    };
+    /* ===== 老年亲热风险：55 岁以上「亲热」每次都有概率猝死 =====
+       数字按年龄分档（每档都是“每一次亲热”的概率）：
+         55–59 岁 1%　60–69 岁 2.5%　70–79 岁 5%　80 岁及以上 10%
+       配偶每月大约亲热 1~2 次，所以 55~60 岁多数能平安到老，70 岁以后基本几年内就会出事；
+       觉得太狠就把数组里的数字除以 2，想更凶就乘 2。死因写的是「牡丹花下（亲热时猝死）」。 */
+    const ELDER_INTIMACY_DEATH_RATES=[[55,.01],[60,.025],[70,.05],[80,.1]];
+    function getElderIntimacyDeathRate(person){
+      const age=Number(person&&person.age)||0;
+      let rate=0;
+      ELDER_INTIMACY_DEATH_RATES.forEach(([threshold,chance])=>{if(age>=threshold)rate=chance;});
+      return rate;
+    }
+    /* 怀有身孕的人（含男孕）猝死时：把怀孕状态与该孕育者名下的未决出生一起清掉，孩子算没保住 */
+    function dropUnbornChild(person){
+      if(!person)return;
+      try{if(typeof clearPregnancySnapshot==='function')clearPregnancySnapshot(person);}catch(error){}
+      person.pregnant=false;
+      person.pregnancyMonths=0;
+      person.pregnancyFather=null;
+      person.inLabor=false;
+      person.postpartumMonths=0;
+      if(Array.isArray(game.pendingBirths))game.pendingBirths=game.pendingBirths.filter(pending=>pending&&pending.mother!==person&&pending.carrier!==person);
+    }
+    function killByElderIntimacy(person,partner){
+      if(!person||person.alive===false)return false;
+      /* 主控不会「牡丹花下」——主控的离世只走现有的老死/交接权柄流程（见 processPlayerDeath / openRetirement） */
+      if(String(person.id)==='player')return false;
+      const wasPregnant=person.pregnant===true||Number(person.pregnancyMonths||0)>0;
+      person.alive=false;
+      person.deathYear=Number(person.deathYear??game.year);
+      person.deathMonth=Number(person.deathMonth??game.month);
+      const partnerName=partner&&partner.name?partner.name:'对方';
+      /* 怀孕中的（含权柄男孕）不能用「牡丹花下」的说法：走孕期猝死文案，并且孩子没保住 */
+      person.deathCause=wasPregnant?'孕期亲热猝死':'牡丹花下（亲热时猝死）';
+      const text=wasPregnant
+        ?`${person.name}怀着身孕，在与${partnerName}亲热时猝死，肚子里的孩子也没能保住。`
+        :`${person.name}在与${partnerName}亲热时猝死，走的时候脸上还带着笑。`;
+      if(wasPregnant)dropUnbornChild(person);
+      diaryEventTypes.set(text,'去世');
+      addNpcDiary(person,text);
+      if(person.starred)addEvent(person,text);
+      const witness=partner&&String(partner.id)!==String(person.id)?partner:null;
+      if(witness&&witness.alive!==false){
+        const witnessText=wasPregnant
+          ?`${person.name}怀着孩子，在${witness.name}身上猝死，孩子也没能保住。`
+          :`${person.name}在${witness.name}身上没了气息，${witness.name}整个人都僵住了。`;
+        diaryEventTypes.set(witnessText,'去世');
+        if(String(witness.id)==='player')addDiary(witnessText);else addNpcDiary(witness,witnessText);
+      }
+      const widow=person.spouseId?findAnyPerson(person.spouseId):null;
+      if(widow&&widow.alive!==false&&String(widow.id)!==String(witness&&witness.id||'')){
+        widow.married=false;widow.widowed=true;widow.spouseId=null;widow.spouseName='';
+        const widowText=`${person.name}去世了，${widow.name}成为了丧偶之人。`;
+        diaryEventTypes.set(widowText,'去世');
+        if(String(widow.id)==='player')addDiary(widowText);else addNpcDiary(widow,widowText);
+      }else if(witness&&witness.alive!==false&&String(witness.spouseId||'')===String(person.id)){
+        witness.married=false;witness.widowed=true;witness.spouseId=null;witness.spouseName='';
+      }
+      return true;
+    }
+    function rollElderIntimacyDeath(first,second){
+      let died=false;
+      [[first,second],[second,first]].forEach(([person,partner])=>{
+        if(!person||person.alive===false||String(person.id)==='player')return;
+        const rate=getElderIntimacyDeathRate(person);
+        if(rate>0&&Math.random()<rate&&killByElderIntimacy(person,partner))died=true;
+      });
+      return died;
+    }
+    const elderDeathTryNpcIntimacy=tryNpcIntimacy;
+    tryNpcIntimacy=(first,second,relation,reciprocal)=>{
+      const result=elderDeathTryNpcIntimacy(first,second,relation,reciprocal);
+      if(result)rollElderIntimacyDeath(first,second);
+      return result;
+    };
+    const elderDeathInteract=interact;
+    interact=(npc,action)=>{
+      const pointsBefore=game.points;
+      elderDeathInteract(npc,action);
+      if(action==='intimate'&&npc&&game.player&&game.points<pointsBefore)rollElderIntimacyDeath(game.player,npc);
+    };
+    /* ===== 「遗腹子」特质收口 =====
+       遗腹子是【孩子】的特质，定义是「生父（权柄男孕的孩子是生物学母亲）在出生前去世」。
+       判定只认两种证据，避免"有个已故亲人"就被当成遗腹子：
+         ① 关键亲属的死亡时间有记录 → 必须不晚于本人的出生月（还活着、或死于本人生日之后 → 清掉）；
+         ② 死亡时间没记录 → 必须有日记旁证（日记里同时出现「遗腹子」和本人名字）。
+       两者都没有 → 清掉（旧存档里被挂到孕育者/无关人身上的那种）。 */
+    function normalizePosthumousTraits(people){
+      const list=people&&people.length?people:((typeof getAllPeople==='function'?getAllPeople():null)||game.npcs||[]);
+      const birthIndexOf=person=>{
+        const year=Number(person&&person.birthYear);
+        const month=Number(person&&person.birthMonth);
+        if(!Number.isFinite(year)||!Number.isFinite(month)||month<1)return null;
+        return (typeof monthIndex==='function'?monthIndex(year,month):year*12+month);
+      };
+      const deathIndexOf=person=>{
+        if(!person||person.alive!==false)return null;
+        const year=Number(person.deathYear);
+        const month=Number(person.deathMonth);
+        if(!Number.isFinite(year)||!Number.isFinite(month)||month<1)return null;
+        return (typeof monthIndex==='function'?monthIndex(year,month):year*12+month);
+      };
+      const hasDiaryEvidence=person=>{
+        const name=String(person&&person.name||'');
+        if(!name)return false;
+        const matches=entry=>{
+          const text=String((entry&&entry.text!==undefined?entry.text:entry)||'');
+          return text.includes('遗腹子')&&text.includes(name);
+        };
+        if((person.npcDiary||[]).some(matches))return true;
+        if(Object.values(game.diary||{}).some(entries=>(entries||[]).some(matches)))return true;
+        return (game.npcs||[]).some(other=>other&&(other.npcDiary||[]).some(matches));
+      };
+      list.forEach(person=>{
+        if(!person||person.isPosthumous!==true)return;
+        const ids=[person.biologicalFatherId,person.biologicalMotherId,person.gestationalParentId,...(person.parentIds||[])].map(String).filter(id=>id&&id!=='undefined'&&id!=='null');
+        const parents=[...new Set(ids)].map(id=>(typeof findAnyPerson==='function'?findAnyPerson(id):null)).filter(Boolean);
+        const deadParents=parents.filter(parent=>parent.alive===false);
+        const birth=birthIndexOf(person);
+        const valid=deadParents.some(parent=>{
+          const died=deathIndexOf(parent);
+          if(died!==null&&birth!==null)return died<=birth;
+          return hasDiaryEvidence(person);
+        });
+        if(!valid)person.isPosthumous=false;
+      });
+      return list;
+    }
+    /* 遗腹子要进父亲的族谱：族谱弹窗读的是父/母的 children 列表，
+       而遗腹子过去只写进 parentIds，于是出现「跟了父亲的姓、族谱里却没有这个孩子」。
+       这里按 biologicalFatherId（权柄男孕的孩子看生物学母亲）把缺失的亲子关系补回去（父亲已故也照补）。 */
+    function linkPosthumousChildrenToParents(){
+      const everyone=(typeof getAllPeople==='function'?getAllPeople():null)||game.npcs||[];
+      everyone.forEach(child=>{
+        if(!child||child.isPosthumous!==true||child.privateFatherRejected===true)return;
+        const royalChild=child.royalPregnancy===true;
+        const keyIds=(royalChild?[child.biologicalMotherId,child.biologicalFatherId]:[child.biologicalFatherId,child.biologicalMotherId])
+          .map(String).filter(id=>id&&id!=='undefined'&&id!=='null'&&id!=='player');
+        keyIds.forEach(id=>{const parent=(typeof findAnyPerson==='function'?findAnyPerson(id):null);if(parent)addChildToParentList(parent,child);});
+        const missing=keyIds.filter(id=>!(child.parentIds||[]).map(String).includes(id));
+        if(missing.length)child.parentIds=[...(child.parentIds||[]),...missing].filter((id,index,array)=>array.findIndex(value=>String(value)===String(id))===index);
+      });
+    }
+    /* 孕期配偶去世后又改嫁/改娶：孩子是亡故前配偶的遗腹子 —— 现任配偶不该因此「婚姻破裂 / 离婚」，
+       只留下心疼与担当的文案（挂进 recordMaritalInfidelity 入口，见下）。 */
+    function isPosthumousRemarriageCase(first,second,child){
+      if(!child||child.isPosthumous!==true||child.pregnancyConceivedMarried!==true)return false;
+      if(!first||!second)return false;
+      const parentIds=[child.biologicalFatherId,child.biologicalMotherId,child.motherId,child.gestationalParentId].map(String).filter(Boolean);
+      const firstId=String(first.id),secondId=String(second.id);
+      const carrierId=parentIds.find(id=>id===firstId||id===secondId);
+      if(!carrierId)return false;
+      if(parentIds.includes(firstId)&&parentIds.includes(secondId))return false;
+      const other=findAnyPerson(parentIds.find(id=>id!==carrierId));
+      return !!(other&&other.alive===false);
+    }
+    function posthumousRemarriageHeartache(first,second,child){
+      if(!child||child.posthumousRemarriageRecorded)return;
+      const couple=[first,second].filter(Boolean);
+      if(!couple.length)return;
+      const parentIds=[child.biologicalFatherId,child.biologicalMotherId,child.motherId,child.gestationalParentId].map(String).filter(Boolean);
+      const carrier=couple.find(person=>parentIds.includes(String(person.id)))||couple[couple.length-1];
+      const spouse=couple.find(person=>person!==carrier)||couple[0];
+      if(!carrier||!spouse)return;
+      const deceased=findAnyPerson(parentIds.find(id=>id!==String(carrier.id)));
+      child.posthumousRemarriageRecorded=true;
+      const text=`${spouse.name}心疼${carrier.name}：${deceased?deceased.name:'前头那个人'}走得早，${carrier.name}是怀着孩子进这个门的——如今孩子生下来了，${spouse.name}一句都没有多问，只想把${carrier.name}和这个孩子一起接住。`;
+      diaryEventTypes.set(text,'婚姻');
+      addDiary(text);
+      [carrier,spouse,child].filter(person=>person&&String(person.id)!=='player').forEach(person=>addNpcDiary(person,text));
+    }
+    const infidelityWithPosthumousRemarriage=recordMaritalInfidelity;
+    recordMaritalInfidelity=(first,second,child,actualOtherParent=null)=>{
+      if(isPosthumousRemarriageCase(first,second,child)){posthumousRemarriageHeartache(first,second,child);return;}
+      return infidelityWithPosthumousRemarriage(first,second,child,actualOtherParent);
+    };
+    /* ===== 小区纪事 = 「小区大事记」=====
+       不再搬运星标居民的日常日记（那只是把业主群日记抄一遍）；
+       现在只记：私生子寻亲 / 认亲被拒、医院抱错三十年后寻亲换回、寻亲后揭晓乱伦 这类事件。
+       旧的 addEvent 调用一律失效（保留函数以免调用处报错），新事件统一走 recordCommunityEvent。 */
+    function recordCommunityEvent(subject,text,type){
+      if(!text)return;
+      const name=typeof subject==='string'?subject:(subject&&subject.name)||'小区';
+      const key=currentKey();
+      game.events=game.events||{};
+      if(!game.events[key])game.events[key]=[];
+      const normalized=(typeof normalizePlayerNameText==='function'?normalizePlayerNameText(text):String(text));
+      if(game.events[key].some(entry=>entry&&entry.text===normalized))return;
+      game.events[key].push({name,text:normalized,type:type||'其它'});
+    }
+    addEvent=()=>{};
+    /* 小区纪事筛选：全部 / 寻亲·认亲 / 改名 / 医院抱错 / 乱伦（旧存档里没分类的条目只在「全部」里出现） */
+    const eventFilterableRenderEvents=renderEvents;
+    renderEvents=()=>{
+      const select=document.getElementById('eventFilter');
+      if(select&&!select.dataset.bound){select.dataset.bound='1';select.addEventListener('change',()=>renderEvents());}
+      eventFilterableRenderEvents();
+      const filter=select?String(select.value||'all'):'all';
+      if(filter==='all')return;
+      const key=currentKey(game.eventView.year,game.eventView.month);
+      const list=document.getElementById('eventList');
+      if(!list)return;
+      const events=(game.events[key]||[]).filter(entry=>entry&&(entry.type||'旧日记')===filter);
+      list.innerHTML=events.length?events.map(entry=>`<div class="event-line"><time>${entry.name}</time><span>${entry.text}</span></div>`).join(''):'<p class="contact-empty">这个月没有符合条件的纪事。</p>';
+    };
+    /* 配偶已故时，个人主页的「配偶」一栏要能点进去看那位故人的主页（原来只是一行纯文本） */
+    function findDeceasedSpouseFor(person){
+      if(!person)return null;
+      const pool=[...(game.npcs||[]),...(game.retiredPeople||[]),...(game.retiredPlayers||[]),...(game.player?[game.player]:[])];
+      const byId=pool.find(candidate=>candidate&&candidate!==person&&candidate.alive===false&&candidate.spouseId!=null&&String(candidate.spouseId)===String(person.id));
+      if(byId)return byId;
+      const name=String(person.spouseName||'');
+      if(!name)return null;
+      return pool.find(candidate=>candidate&&candidate!==person&&candidate.alive===false&&String(candidate.name)===name)||null;
+    }
+    const widowLinkOpenProfile=openProfile;
+    openProfile=person=>{
+      widowLinkOpenProfile(person);
+      if(!person||!person.widowed||person.spouseId||!person.spouseName)return;
+      const holder=document.getElementById('profileSpouse');
+      if(!holder||holder.querySelector('button'))return;
+      const dead=findDeceasedSpouseFor(person);
+      if(!dead)return;
+      holder.innerHTML='';
+      if(typeof profileLink==='function')holder.append(profileLink(dead));
+      else holder.append(document.createTextNode(dead.name));
+      const tag=document.createElement('span');
+      tag.className='profile-spouse-dead';
+      tag.textContent='（已故）';
+      holder.append(tag);
+    };
+    /* ===== 孩子改名：单独记一条日记 =====
+       除了「新生儿第一次取名（出生时问认不认/取名的那个流程）」由出生文案负责之外，
+       其余每一次改名（认亲改名、继承人取名、私生子改姓、被拒绝认领后跟孕育者姓、医院换子等）都单独写一条，
+       并且写清楚：这是给谁改名（谁家的哪个孩子）、为什么改名，并按孕育者性别用词（男孕写「父亲」）。 */
+    function describeRenameReason(child){
+      if(!child)return '家族归属调整';
+      if(child.privateFatherRecognized===true)return '生父认回了这个孩子';
+      if(child.inheritedDecision===true)return '由继承人替已故的前任主控取名';
+      if(child.royalPregnancy===true&&child.royalChildRejected===true)return '主控没有认领这个孩子，孩子回到孕育者身边';
+      if(child.privateFatherRejected===true)return '生父拒绝认领，孩子跟着孕育者生活';
+      if(child.royalPregnancy===true)return '权柄孩子记回生母名下';
+      if(child.parentIds&&child.parentIds.includes('player'))return '被主控认下，记进主控名下';
+      if(child.isPrivateChild===true)return '按私生子归属改随孕育者的姓';
+      return '家族归属调整';
+    }
+    function recordChildRenameDiary(child,previousName){
+      if(!child||!child.name||!previousName||previousName===child.name)return '';
+      const carrierId=String(child.gestationalParentId||child.motherId||child.biologicalMotherId||'');
+      const carrier=carrierId?findAnyPerson(carrierId):null;
+      const roleWord=(carrier&&carrier.gender==='男')?'父亲':'母亲';
+      const reason=describeRenameReason(child);
+      const text=`改名：${previousName}改名为${child.name}——给${carrier?carrier.name:'不详'}家的孩子改名，原因是${reason}；从此随${roleWord}${carrier?carrier.name:'不详'}的姓氏。`;
+      diaryEventTypes.set(text,'宝宝出生啦');
+      addDiary(text);
+      if(carrier&&String(carrier.id)!=='player')addNpcDiary(carrier,text);
+      if(String(child.id)!=='player')addNpcDiary(child,`${child.name}以前叫${previousName}；从这一天起，他/她叫${child.name}（${reason}）。`);
+      if(typeof recordCommunityEvent==='function')recordCommunityEvent(child,text,'改名');
+      return text;
+    }
+    let suppressRenameDiary=false;
+    const renameDiarySyncChildNameInDiary=syncChildNameInDiary;
+    syncChildNameInDiary=(child,previousName)=>{
+      const result=renameDiarySyncChildNameInDiary(child,previousName);
+      const renamed=!!(child&&child.name&&previousName&&previousName!==child.name);
+      /* 出生的那一刻第一次取名（finishBirthDecision，且不是「继承人替已故主控取名」）不重复写改名 */
+      if(renamed&&!(suppressRenameDiary&&child.inheritedDecision!==true))recordChildRenameDiary(child,previousName);
+      return result;
+    };
+    const renameDiaryFinishBirthDecision=finishBirthDecision;
+    finishBirthDecision=(accepted,givenName='')=>{
+      suppressRenameDiary=true;
+      try{return renameDiaryFinishBirthDecision(accepted,givenName);}
+      finally{suppressRenameDiary=false;}
+    };
+    const posthumousAwareOpenProfile=openProfile;
+    openProfile=person=>{if(person){normalizePosthumousTraits([person]);linkPosthumousChildrenToParents();}posthumousAwareOpenProfile(person);};
+    /* ===== 离婚必须留日记 =====
+       游戏里有好几条会让婚姻结束的路径（长期不互动、出轨生子、亲缘揭晓、配偶数据修复…），
+       其中有些只改了 married/spouseId 而没写日记。这里在每次月度结算前后做一次审计：
+       月初还互为夫妻、月末已经不是了（且不是因为去世）→ 如果这个月没有任何一条提到这两人的离婚日记，就补写一条。 */
+    function collectMarriedPairs(){
+      const pairs=new Map();
+      ((typeof getAllPeople==='function'?getAllPeople():null)||game.npcs||[]).forEach(person=>{
+        if(!person||person.alive===false||!person.married||!person.spouseId)return;
+        const spouse=findAnyPerson(person.spouseId);
+        if(!spouse||spouse.alive===false)return;
+        if(String(spouse.spouseId||'')!==String(person.id))return;
+        const key=[String(person.id),String(spouse.id)].sort().join('|');
+        pairs.set(key,{first:person,second:spouse});
+      });
+      return pairs;
+    }
+    function hasDivorceDiaryThisMonth(first,second){
+      const nameA=String(first&&first.name||''),nameB=String(second&&second.name||'');
+      if(!nameA||!nameB)return false;
+      const pattern=/离婚|婚姻走到了尽头|婚姻已经走向破裂|关系被迫结束/;
+      const matches=value=>{const text=String(value||'');return pattern.test(text)&&text.includes(nameA)&&text.includes(nameB);};
+      const checkPerson=person=>{
+        if(!person)return false;
+        if(String(person.id)==='player')return Object.values(game.diary||{}).some(entries=>(entries||[]).some(matches));
+        return (person.npcDiary||[]).some(entry=>Number(entry.year)===game.year&&Number(entry.month)===game.month&&matches(entry.text));
+      };
+      return checkPerson(first)||checkPerson(second);
+    }
+    function recordDivorceDiaryLine(first,second){
+      if(!first||!second)return '';
+      const text=`${first.name}和${second.name}的婚姻走到了尽头。直到办完手续他们都没有多说一句话。`;
+      diaryEventTypes.set(text,'离婚');
+      [first,second].forEach(person=>{
+        if(!person)return;
+        if(String(person.id)==='player')addDiary(text);else addNpcDiary(person,text);
+      });
+      if(String(first.id)!=='player'&&String(second.id)!=='player')addDiary(text);
+      return text;
+    }
+    function recordMissingDivorceDiaries(marriedBefore){
+      if(!marriedBefore||!marriedBefore.size)return 0;
+      let count=0;
+      marriedBefore.forEach(({first,second})=>{
+        if(!first||!second)return;
+        const stillMarried=!!(first.married&&second.married&&String(first.spouseId||'')===String(second.id)&&String(second.spouseId||'')===String(first.id));
+        if(stillMarried)return;
+        if(first.alive===false||second.alive===false)return;   /* 丧偶不算离婚 */
+        if(hasDivorceDiaryThisMonth(first,second))return;
+        if(recordDivorceDiaryLine(first,second))count++;
+      });
+      return count;
+    }
+    /* ===== 传位（交接权柄）：第二代主控不该继承上一代的人脉 =====
+       id 互换只迁移了对象引用，但「居民对主控的好感度 / 恋人 / 炮友标记」是按 'player' 这个身份存在居民身上的，
+       于是新主控一上任就白拿了前任的好感度与人脉（恋人、炮友、婚姻全都照搬）。
+       这里按「继承人与该居民自己原有的关系」重算一遍：祖先没交往过的人一律回到陌生（好感 0、无恋人标记）。 */
+    function hasLivingCasualPartner(person){
+      return Object.entries((person&&person.relations)||{}).some(([id,relation])=>{
+        if(!relation||relation.casualPartner!==true)return false;
+        const partner=findAnyPerson(id);
+        return !!partner&&partner.alive!==false;
+      });
+    }
+    function rebaseRelationsToNewPlayer(newPlayer){
+      if(!newPlayer)return 0;
+      const heirRelations=newPlayer.relations||{};
+      const everyone=((typeof getAllPeople==='function'?getAllPeople():null)||game.npcs||[]);
+      let count=0;
+      everyone.forEach(person=>{
+        if(!person||String(person.id)==='player')return;
+        /* 迁移（remapPersonReferences）之后 person.relations['player'] 已经是「继承人与该居民」的关系：
+           前任那一条被搬到了 former-player-… 名下，所以这里取哪一份都不会取到前人的人脉。 */
+        const incoming=person.relations?person.relations['player']:null;
+        const heirSide=heirRelations[String(person.id)]||null;
+        const flags=heirSide||incoming||{};
+        const affinity=Math.max(0,Math.min(100,Number((heirSide&&heirSide.affinity)||(incoming&&incoming.affinity))||0));
+        person.affinity=affinity;
+        person.relations=person.relations||{};
+        const marriedToHeir=!!(newPlayer.married&&String(newPlayer.spouseId)===String(person.id));
+        person.relations['player']={...(incoming||{}),affinity,lover:!!flags.lover,married:marriedToHeir,casualPartner:!!flags.casualPartner,formerSpouseCasual:!!flags.formerSpouseCasual,hideCasualLabel:!!flags.hideCasualLabel};
+        person.lover=!!person.spouseId||(typeof liveRomanticPartners==='function'?liveRomanticPartners(person).length>0:false);
+        person.formerSpouseCasual=!!flags.formerSpouseCasual;
+        person.casualPartner=!!flags.casualPartner||hasLivingCasualPartner(person);
+        /* 前任主控留下的「亲热无门槛」通行证对第二代无效（成年人才清，未成年人的保护标记要留着） */
+        if(Number(person.age)>=18&&person.intimacyAffinityLocked===true)person.intimacyAffinityLocked=false;
+        count++;
+      });
+      return count;
+    }
+    const rebaseRelationsRetireToHeir=retireToHeir;
+    retireToHeir=heir=>{
+      const previousPlayer=game.player;
+      const result=rebaseRelationsRetireToHeir(heir);
+      /* 只有真的换人成功（game.player 变了）才重算人脉，并且补一次渲染让界面立刻反映新人 */
+      if(game.player&&game.player!==previousPlayer&&String(game.player.id)==='player'){
+        rebaseRelationsToNewPlayer(game.player);
+        renderAll();
+      }
+      return result;
+    };
+    /* ===== 可驱逐范围收窄 =====
+       只保护：① 自己的亲生父母 ② 自己的直系后代（子女、孙辈…）③ 自己的兄弟姐妹（同父/同母/同父同母都算）。
+       其余一律可驱逐 —— 包括兄弟姐妹的孩子（侄甥），以及同父异母 / 同母异父里「不对应自己那一半」的那位父母
+       （继父 / 继母：他们并不是自己的父母，自然不在保护内）。 */
+    function isLinealDescendantOf(person,root){
+      if(!person||!root)return false;
+      const queue=[...(((typeof getVisibleChildrenForParent==='function'?getVisibleChildrenForParent(root):null)||root.children||[]))];
+      const seen=new Set();
+      while(queue.length){
+        const current=queue.shift();
+        if(!current)continue;
+        const key=String(current.id);
+        if(key===String(person.id))return true;
+        if(seen.has(key))continue;
+        seen.add(key);
+        (((typeof getVisibleChildrenForParent==='function'?getVisibleChildrenForParent(current):null)||current.children||[])).forEach(child=>queue.push(child));
+      }
+      return false;
+    }
+    function shareAnyParent(person,root){
+      if(!person||!root)return false;
+      const rootParents=new Set((((typeof getVisibleParentsForChild==='function'?getVisibleParentsForChild(root):null)||[])).map(parent=>String(parent.id)));
+      if(!rootParents.size)return false;
+      return ((((typeof getVisibleParentsForChild==='function'?getVisibleParentsForChild(person):null)||[])).some(parent=>rootParents.has(String(parent.id))));
+    }
+    function isExpelProtectedRelative(person){
+      const player=game.player;
+      if(!player||!person)return false;
+      const parents=((typeof getVisibleParentsForChild==='function'?getVisibleParentsForChild(player):null)||[]);
+      if(parents.some(parent=>parent&&String(parent.id)===String(person.id)))return true;   /* 亲生父母（含未婚生下的那一方） */
+      if(isLinealDescendantOf(person,player))return true;                                   /* 自己的直系后代 */
+      if(shareAnyParent(person,player))return true;                                         /* 兄弟姐妹（含半血缘） */
+      return false;
+    }
+    const narrowedRangeCanExpelResident=canExpelResident;
+    canExpelResident=person=>{
+      if(!game.player||Number(game.points)<5||!person||person.id==='player'||person.alive===false||Number(person.age)<18)return false;
+      if(String(game.player.spouseId)===String(person.id))return false;                     /* 配偶仍不可驱逐 */
+      if(isExpelProtectedRelative(person))return false;
+      return true;
+    };
+    /* 提示语也跟着收窄后的规则走，别再拿「血缘」当万能理由拦人 */
+    getExpelBlockReason=person=>{
+      if(Number(game.points)<5)return '行动点不足，驱逐居民需要 5 点行动点。';
+      const player=game.player;
+      if(!player||!person)return '血缘是刻入骨血的烙印，婚姻是缔结灵魂的契约。';
+      if(Number(person.age)<18&&String(player.spouseId)!==String(person.id)&&!isExpelProtectedRelative(person))return '庇护弱小是底线。将未成年的子民驱逐，会彻底摧毁这里的秩序与人心。';
+      if(String(player.spouseId)===String(person.id))return '这是你的配偶，婚姻是缔结灵魂的契约。';
+      if(isExpelProtectedRelative(person)){
+        const parents=((typeof getVisibleParentsForChild==='function'?getVisibleParentsForChild(player):null)||[]);
+        if(parents.some(parent=>parent&&String(parent.id)===String(person.id)))return '这是你的亲生父母，血缘是刻入骨血的烙印。';
+        if(isLinealDescendantOf(person,player))return '这是你的直系血脉（子女或孙辈），血脉是刻入骨血的烙印。';
+        return '这是你的兄弟姐妹，血脉相连，不可驱逐。';
+      }
+      return '血缘是刻入骨血的烙印，婚姻是缔结灵魂的契约。';
+    };
+    const posthumousAwareProcessResidents=processResidents;
+    processResidents=()=>{
+      const marriedBefore=collectMarriedPairs();
+      posthumousAwareProcessResidents();
+      normalizePosthumousTraits();
+      linkPosthumousChildrenToParents();
+      recordMissingDivorceDiaries(marriedBefore);
+    };
+    /* ===== 未认回的私生子：不认账的那一方不算「孩子的父母」 =====
+       recordChildDeathDiaries 会把 child 的 parentIds / motherId / fatherId / biologicalFatherId 全部并起来，
+       于是「生父拒绝认领 / 一直没被认回」的私生子夭折时，那位不认账的生父（权柄孩子里是不认的生母）
+       也会收到「失去了自己的孩子」——他还没认这个孩子，这笔不该记在他头上。
+       做法：把该跳过的人预先写进 childDeathDiaryParents（原逻辑的去重名单），原逻辑自然就不会写了。
+       男孕（权柄女让男性怀孕）照旧：孕育者 / 代孕的那位永远是「自己人」，只有明确不认的那一方被排除。 */
+    function isUnclaimedPrivateChild(child){
+      if(!child)return false;
+      if(child.privateFatherRecognized===true)return false;      /* 已经认回来（寻亲成功 / 主控认领 / 继承人认回） */
+      if(child.birthDecisionType==='married'&&child.fatherUnknown!==true&&child.motherUnknown!==true&&child.illegitimate!==true&&child.isPrivateChild!==true&&child.royalChildRejected!==true)return false;
+      return child.isPrivateChild===true||child.illegitimate===true||child.privateFatherRejected===true||child.royalChildRejected===true||child.fatherUnknown===true||child.motherUnknown===true;
+    }
+    /* 这个人对该孩子而言是不是「不认账的那一方」：孩子档案里公开承认的父母之外，只有未被认回的私生子才排除 */
+    function isUnacknowledgedParentForChild(child,parentId){
+      if(!child||!parentId)return false;
+      const id=String(parentId);
+      const visible=((typeof getVisibleParentsForChild==='function'?getVisibleParentsForChild(child):null)||[]);
+      if(visible.some(parent=>String(parent.id)===id))return false;             /* 档案里公开承认的父母 */
+      const bearerId=String(child.gestationalParentId||child.motherId||child.biologicalMotherId||'');
+      if(bearerId&&id===bearerId)return false;                                   /* 孕育者（含男孕的代孕者）永远算自己人 */
+      const subject=findAnyPerson(id);
+      if(!subject)return isUnclaimedPrivateChild(child);
+      if(child.fatherUnknown===true&&String(subject.gender)==='男')return true;
+      if(child.motherUnknown===true&&String(subject.gender)==='女')return true;
+      return isUnclaimedPrivateChild(child);
+    }
+    const privateChildAwareRecordChildDeathDiaries=recordChildDeathDiaries;
+    recordChildDeathDiaries=aliveBefore=>{
+      const people=((typeof getAllPeople==='function'?getAllPeople():null)||[]);
+      people.filter(child=>child&&child.alive===false&&child.evicted!==true).forEach(child=>{
+        const blocked=[];
+        const push=key=>{const text=String(key||'');if(text&&!blocked.includes(text))blocked.push(text);};
+        /* ① 原始并集里「不认账」的那一方 —— 这一层原逻辑用的是裸 id */
+        [...(child.parentIds||[]),child.motherId,child.biologicalMotherId,child.fatherId,child.biologicalFatherId]
+          .filter(Boolean)
+          .forEach(id=>{if(isUnacknowledgedParentForChild(child,id))push(String(id));});
+        /* ② 祖辈：中间那一代不认账，他这一支（爷爷奶奶 / 外公外婆）也都不记 —— 原逻辑的键是 id 或 id:depth */
+        const walk=(current,depth,hidden)=>{
+          if(!current||depth>=2)return;
+          ((typeof getVisibleParentsForChild==='function'?getVisibleParentsForChild(current):null)||[]).forEach(parent=>{
+            const id=String(parent.id);
+            const nextDepth=depth+1;
+            const skip=hidden||isUnacknowledgedParentForChild(current,id);
+            if(skip)push(nextDepth===1?id:`${id}:${nextDepth}`);
+            walk(parent,nextDepth,skip);
+          });
+        };
+        walk(child,0,false);
+        if(!blocked.length)return;
+        child.childDeathDiaryParents=child.childDeathDiaryParents||[];
+        blocked.forEach(key=>{if(!child.childDeathDiaryParents.includes(key))child.childDeathDiaryParents.push(key);});
+      });
+      privateChildAwareRecordChildDeathDiaries(aliveBefore);
+    };
+    /* ===== 医院抱错：主控的孩子也能被抱错 =====
+       抱错发生在「出生当月」，所以：
+       ① 生产那句日记要换成「手忙脚乱」的版本（男孕用「他 / 分娩」的说法，不用「产房 / 母子」）；
+       ② 事情本身记进小区纪事（医院抱错）；
+       ③ 主控家里的交换必须同步到 game.playerChildren，否则会被 sanitizeUnprovenPlayerChildren 当作
+          「没有证据的孩子」摘掉 —— 表现就是「主控的孩子永远不会被抱错」；
+       ④ 还在等主控定夺的新生儿被抱走时，把取名 / 认领窗口挪到抱回来的那个孩子身上。 */
+    const HOSPITAL_SWAP_FEMALE_LINES=[
+      '生产的时候一片手忙脚乱，屋里的东西被撞得东倒西歪，折腾了许久，孩子才终于被接了下来',
+      '生产比谁都狼狈，家里人来回奔走，一片兵荒马乱中，孩子总算落了地',
+      '进产房那一刻所有人都慌了神，护士抱着器械一路小跑，手忙脚乱地忙到天亮，孩子才终于出生',
+      '生产时疼得几乎听不清周围的声音，产房里人人手忙脚乱，折腾到后半夜，孩子才肯出来'
+    ];
+    const HOSPITAL_SWAP_MALE_LINES=[
+      '分娩那天一片手忙脚乱，接生的人来来回回地跑，他自己咬着牙撑了许久，孩子才终于出生',
+      '临产时谁都没有准备好，屋里人仰马翻、手忙脚乱，折腾到深夜，孩子总算平安落地',
+      '分娩的那晚狼狈得很，屋里一片手忙脚乱，好在他自己撑住了，孩子终于来到这个世上'
+    ];
+    const HOSPITAL_SWAP_BIRTH_LINE=/顺利生下|顺利生产|平安出生|生产时|生下|分娩/;
+    function hospitalSwapBirthLine(bearer,nameClause){
+      const male=!!bearer&&String(bearer.gender)==='男';
+      const pool=male?HOSPITAL_SWAP_MALE_LINES:HOSPITAL_SWAP_FEMALE_LINES;
+      const stem=randomItem(pool);
+      const name=bearer?bearer.name:'主控';
+      const line=`${name} ${stem}${nameClause||'。'}`;
+      /* 王之权柄男孕育之类的分娩，仍旧保留权柄说明（annotateRoyalPregnancyDiary 的 phase='分娩'） */
+      if(typeof annotateRoyalPregnancyDiary==='function')return annotateRoyalPregnancyDiary(line,bearer,'分娩');
+      return line;
+    }
+    /* 生出这个孩子的那位（含男孕的代孕者）：抱错时母亲位已被改写，所以要优先读孕育者 / 生物学母亲 */
+    function hospitalSwapBearer(child){
+      if(!child)return null;
+      const candidates=[child.gestationalParentId,child.biologicalMotherId,child.motherId];
+      for(let index=0;index<candidates.length;index++){
+        const id=candidates[index];
+        if(!id)continue;
+        const person=findAnyPerson(id);
+        if(person)return person;
+      }
+      return null;
+    }
+    function rewriteBirthDiaryForHospitalSwap(bearer,child){
+      if(!bearer||!child)return '';
+      if(Number(child.birthYear)!==Number(game.year)||Number(child.birthMonth)!==Number(game.month))return '';
+      const isPlayer=String(bearer.id)==='player'||!!(game.player&&String(bearer.id)===String(game.player.id));
+      const makeText=old=>{
+        /* 旧文案可能是「…，取名为X。（因王之权柄作用已分娩）」这种带尾巴的，所以不锚定句尾 */
+        const clause=(String(old||'').match(/，取名为[^。]*。/)||[''])[0];
+        return hospitalSwapBirthLine(bearer,clause||'。');
+      };
+      const matches=text=>HOSPITAL_SWAP_BIRTH_LINE.test(String(text||''));
+      if(isPlayer){
+        const list=(game.diary||{})[currentKey(Number(child.birthYear),Number(child.birthMonth))];
+        if(!Array.isArray(list))return '';
+        for(let index=list.length-1;index>=0;index--){
+          if(!matches(list[index]))continue;
+          const next=makeText(list[index]);
+          list[index]=next;
+          diaryEventTypes.set(next,'宝宝出生啦');
+          return next;
+        }
+        return '';
+      }
+      const diaries=bearer.npcDiary||[];
+      for(let index=diaries.length-1;index>=0;index--){
+        const entry=diaries[index];
+        if(!entry||Number(entry.year)!==Number(child.birthYear)||Number(entry.month)!==Number(child.birthMonth))continue;
+        if(!matches(entry.text))continue;
+        const next=makeText(entry.text);
+        diaryEventTypes.set(next,'宝宝出生啦');
+        if(/难产|双亡|没有保住|去世/.test(String(entry.text||''))){
+          /* 难产那一条里的死讯不能丢：手忙脚乱这句另起一条，不覆盖原文 */
+          diaries.splice(index+1,0,{year:entry.year,month:entry.month,text:next});
+        }else{
+          entry.text=next;
+        }
+        return next;
+      }
+      return '';
+    }
+    function hospitalSwapRaiseNames(child){
+      const names=((child&&child.raisedParentIds||[]).map(id=>{const person=findAnyPerson(id);return person&&person.name;}).filter(Boolean));
+      return names.length?names.join('、'):'别家';
+    }
+    function hospitalSwapTouchesPlayer(child){
+      if(!child)return false;
+      const ids=[...(child.parentIds||[]),...(child.raisedParentIds||[]),...(child.biologicalParentIds||[]),child.motherId,child.biologicalMotherId,child.gestationalParentId];
+      return ids.some(id=>String(id)==='player');
+    }
+    function syncPlayerChildListsAfterSwap(swappedChildren){
+      const player=game.player;
+      if(!player)return;
+      game.playerChildren=game.playerChildren||[];
+      /* 只动这一轮被抱错/换回来的两个孩子：家长关系（parentIds）里有主控的补进名单，
+         改到别家名下的从名单里摘掉。 */
+      (swappedChildren||[]).forEach(child=>{
+        if(!child)return;
+        const id=String(child.id);
+        const accounted=(child.parentIds||[]).some(parentId=>String(parentId)==='player');
+        if(accounted){
+          if(!game.playerChildren.some(item=>item&&String(item.id)===id))game.playerChildren.push(child);
+        }else{
+          game.playerChildren=game.playerChildren.filter(item=>item&&String(item.id)!==id);
+        }
+      });
+      player.children=game.playerChildren;
+    }
+    /* 被抱走的新生儿若还在等主控定夺：家里抱着的是另一个孩子了，把取名 / 认领窗口挪过去 */
+    function rerouteHospitalSwapPendingChildren(away,incoming){
+      if(!away||!incoming)return;
+      let touched=false;
+      (game.pendingBirths||[]).forEach(pending=>{
+        if(!pending||!pending.child)return;
+        if(String(pending.child.id)!==String(away.id))return;
+        pending.child=incoming;
+        if(incoming.birthDecisionType===undefined)incoming.birthDecisionType=away.birthDecisionType;
+        touched=true;
+      });
+      if(!touched)return;
+      const seen=new Set();
+      game.pendingBirths=(game.pendingBirths||[]).filter(pending=>{
+        if(!pending||!pending.child)return false;
+        const id=String(pending.child.id);
+        if(seen.has(id))return false;
+        seen.add(id);
+        const raiseMother=findAnyPerson(pending.child.motherId);
+        if(raiseMother&&String(raiseMother.id)!=='player'&&(!pending.mother||String(pending.mother.id)!==String(raiseMother.id)))pending.mother=raiseMother;
+        return true;
+      });
+    }
+    function applyHospitalSwapEffects(){
+      const everyone=((typeof getAllPeople==='function'?getAllPeople():null)||[]);
+      const playerSwapped=[];
+      everyone.forEach(child=>{
+        if(!child||child.hospitalSwitched!==true)return;
+        const other=child.hospitalSwapId?findAnyPerson(child.hospitalSwapId):null;
+        if(hospitalSwapTouchesPlayer(child)||hospitalSwapTouchesPlayer(other)){
+          playerSwapped.push(child);
+          if(other)playerSwapped.push(other);
+        }
+        /* 日记 / 纪事只写一次；但上面的主控名单同步每次都要跑，免得被 sanitize 摘掉 */
+        if(child.hospitalSwapDiaryRecorded===true)return;
+        child.hospitalSwapDiaryRecorded=true;
+        if(other)other.hospitalSwapDiaryRecorded=true;
+        /* 旧存档里很多年前抱错的：不回写当年的日记，也不补纪事（那里的「寻亲」自会记录） */
+        if(Number(child.birthYear)!==Number(game.year)||Number(child.birthMonth)!==Number(game.month))return;
+        const bearer=hospitalSwapBearer(child);
+        rewriteBirthDiaryForHospitalSwap(bearer,child);
+        if(other)rewriteBirthDiaryForHospitalSwap(hospitalSwapBearer(other),other);
+        rerouteHospitalSwapPendingChildren(child,other||null);
+        if(other&&String(child.id)<String(other.id)){
+          const text=`${child.name}和${other.name}在同一间医院出生，那一夜一片手忙脚乱，两个襁褓被弄混了：${child.name}被抱进了${hospitalSwapRaiseNames(child)}家，${other.name}被抱进了${hospitalSwapRaiseNames(other)}家。这件事要等到很多年后的寻亲，才会被翻出来。`;
+          recordCommunityEvent(child,text,'医院抱错');
+        }
+      });
+      if(playerSwapped.length)syncPlayerChildListsAfterSwap(playerSwapped);
+    }
+    function hospitalSwapLookDifference(child,parent){
+      if(!child||!parent)return 0;
+      const numeric=[['hairHue',200],['hairLightness',400],['hairSaturation',200],['skinLightness',80],['eyeHue',200],['eyeLightness',200],['eyeSaturation',200]];
+      let score=0,count=0;
+      numeric.forEach(pair=>{
+        const first=Number(child[pair[0]]),second=Number(parent[pair[0]]);
+        if(!Number.isFinite(first)||!Number.isFinite(second))return;
+        score+=Math.min(1,Math.abs(first-second)/pair[1]);
+        count++;
+      });
+      ['face','eyes','brows','nose','mouth'].forEach(key=>{
+        const first=Number((child.avatar||{})[key]),second=Number((parent.avatar||{})[key]);
+        if(!first||!second)return;
+        score+=first===second?0:1;
+        count++;
+      });
+      return count?score/count:0;
+    }
+    const HOSPITAL_REVEAL_LINES=[
+      '%P越看越觉得%C和自己一点都不像：眉眼、鼻梁，连笑起来的样子都是陌生的。心里搁了很久，终于去做了鉴定——原来当年在医院里，孩子被抱错了。',
+      '%P这十几年总觉得哪里不对：%C越长越不像自己，也不像家里任何人。带着疑问跑了一趟医院，翻出来的却是一个「抱错」的答案。',
+      '亲戚们不止一次说过「%C一点都不像%P」，%P原本只当是玩笑。直到那天把旧照片一张张摊开，%P沉默了很久，才去医院调出当年的记录——抱错了。',
+      '%P盯着%C的侧脸看了很久：一点都不像。鉴定结果出来那天，%P才明白，当年医院里那个手忙脚乱的一夜，把两个孩子换错了人家。',
+      '%P给%C梳头的时候忽然愣住：这张脸和自己、和家里人都对不上。%P没敢声张，独自去医院问了一趟，回来时手里多了一张抱错的结论。'
+    ];
+    function fillHospitalRevealLine(line,parent,child){
+      return String(line||'').replace(/%P/g,parent&&parent.name||'家长').replace(/%C/g,child&&child.name||'孩子');
+    }
+    /* 认回那天的两类文案：亲生父母「喜极而泣」、养父母「依依不舍」。
+       主控那边不写煽情，只留一句平实的「知道了…找回来了…改了姓接回家中」（见 hospitalReunionFor 末尾）。 */
+    const HOSPITAL_JOY_LINES=[
+      '%P一把把%C搂进怀里，哭得连话都说不成句：找回来的孩子，终于回家了。',
+      '%P见到%C的那一刻腿都软了，眼泪止不住地往下掉，「回来了就好、回来了就好」反复念了好几遍。',
+      '%P把%C从头看到脚，一边抹眼泪一边笑，说这十几年欠下的，往后要一件件补回来。'
+    ];
+    const HOSPITAL_RELUCTANT_LINES=[
+      '%P替%C把行李收了一遍又一遍，送到门口还是追出去两步：「有空就回来吃饭。」养了十几年的孩子，终究要还给别家。',
+      '%P一直笑着送%C出门，等门关上才蹲下来哭出声。%P知道该替孩子高兴，可心里空了一大块。',
+      '%P把%C从小到大的照片和旧衣服一起装进箱子塞到%C手里：「这些本来就该是你的。」说完转过身去，没让孩子看见脸。'
+    ];
+    function fillHospitalSwapLine(line,name,childName){
+      return String(line||'').replace(/%P/g,name||'对方').replace(/%C/g,childName||'孩子');
+    }
+    /* 兄弟姐妹那边的文案：喜欢就叫接受，不喜欢就敌视或冷漠 —— 好感度随机涨落，文案跟着涨落走 */
+    const HOSPITAL_SIBLING_WELCOME_LINES={
+      accept:[
+        '%P拍了拍%C的肩：「以后就是一家人了。」',
+        '%P把自己的被子往边上挪了挪，说从今天起让%C睡自己旁边。',
+        '%P拉着%C的手一遍遍问这些年的事，越问越高兴。'
+      ],
+      hostile:[
+        '%P冷冷地盯着%C，一句话都不肯说——在%P眼里，这个突然冒出来的亲人一进门就占了本该属于自己的位置。',
+        '%P把门摔得震天响：「谁要跟%C做兄弟。」'
+      ],
+      cold:[
+        '%P只是「嗯」了一声，连头都没抬。',
+        '%P把碗筷往里挪了挪，没给%C让位置，也没说话。'
+      ]
+    };
+    const HOSPITAL_SIBLING_FAREWELL_LINES={
+      accept:[
+        '%P替%C把最后一箱行李搬到门口，说「本来就该回去的」。',
+        '%P把%C小时候送自己的东西还了回去：「拿走吧，别忘了我们。」'
+      ],
+      hostile:[
+        '%P把%C用过的椅子踢到墙角：「凭什么说走就走，说回来就回来。」',
+        '%P认定是%C把这个家搅乱了，从此看见%C的背影就扭过头去。'
+      ],
+      cold:[
+        '%P把%C留下的旧衣服推到一边，像什么都没发生过。',
+        '%P没去送%C，只在自己屋里坐着，一句话也没说。'
+      ]
+    };
+    /* 当场认回：改随亲生父母的姓 + 写煽情文案（只有居民）+ 主控那句平实记录 */
+    function hospitalReunionFor(child,other){
+      if(!child)return;
+      const bioParents=(child.biologicalParentIds||[]).map(id=>findAnyPerson(id)).filter(person=>person&&person.alive!==false);
+      const raisers=(child.parentIds||[]).map(id=>findAnyPerson(id)).filter(person=>person&&person.alive!==false);
+      const oldName=child.name||'这个孩子';
+      /* ① 改姓：接回家的孩子跟着亲生父母家姓。
+             母亲位 = 孕育者（gestationalParentId / 生物学母亲 / motherId），父亲位 = 另一位生身父母；
+             权柄女（母亲位是权柄女、或是男孕里权柄女占着父亲位）交给 getChildSurname 自己判，
+             不要按性别硬猜 —— 男孕的孩子跟的是孕育者那一支，权柄女的孩子跟权柄女的姓。 */
+      const bearerId=String(child.gestationalParentId||child.biologicalMotherId||child.motherId||'');
+      const bioPeople=(child.biologicalParentIds||[]).map(id=>findAnyPerson(id)).filter(Boolean);
+      const fatherSlotId=(child.biologicalParentIds||[]).map(String).find(id=>id&&id!==bearerId)||String(child.biologicalFatherId||'');
+      let motherSlot=bearerId?findAnyPerson(bearerId):null;
+      let fatherSlot=fatherSlotId?findAnyPerson(fatherSlotId):null;
+      if(!motherSlot){
+        /* 兜底：孕育者没有记录时，母亲位取生身父母里的女方（权柄女 / 男孕仍交给 getChildSurname 自己判） */
+        motherSlot=bioPeople.find(person=>person&&person.gender==='女')||bioPeople[0]||null;
+        fatherSlot=bioPeople.find(person=>person&&person!==motherSlot)||null;
+      }
+      /* 摆正两个槽位：男孕时孕育者是男性、权柄女可能占着另一侧的记录，
+         所以按性别把「母亲位 / 父亲位」对齐后再交给 getChildSurname（权柄女的姓优先）。 */
+      if(motherSlot&&fatherSlot&&motherSlot.gender==='男'&&fatherSlot.gender==='女'){
+        const swapSlot=motherSlot;
+        motherSlot=fatherSlot;
+        fatherSlot=swapSlot;
+      }
+      const royalWomanSlot=(motherSlot&&motherSlot.gender==='女'&&typeof hasRoyalAuthority==='function'&&hasRoyalAuthority(motherSlot))?motherSlot:((fatherSlot&&fatherSlot.gender==='女'&&typeof hasRoyalAuthority==='function'&&hasRoyalAuthority(fatherSlot))?fatherSlot:null);
+      const surnameOwner=royalWomanSlot||fatherSlot||motherSlot||null;
+      let newName=oldName;
+      if(motherSlot&&oldName){
+        const newSurname=(typeof getChildSurname==='function')?getChildSurname(motherSlot,fatherSlot,child):(surnameOwner&&(surnameOwner.surname||String(surnameOwner.name||'').charAt(0)));
+        const currentSurname=String(child.surname||'');
+        const given=currentSurname&&oldName.startsWith(currentSurname)?oldName.slice(currentSurname.length):oldName.slice(1);
+        const candidate=newSurname&&given?(typeof uniqueChildName==='function'?uniqueChildName(motherSlot,fatherSlot,child.gender,given,child):`${newSurname}${given}`):'';
+        if(candidate&&candidate!==oldName){
+          child.surname=newSurname;
+          child.name=candidate;
+          newName=candidate;
+          if(typeof rememberFormerName==='function')rememberFormerName(child,oldName);
+          /* 改名日记这里不重复写（认回的文案已经说明了来龙去脉），只补一条「改名」纪事 */
+          suppressRenameDiary=true;
+          try{if(typeof syncChildNameInDiary==='function')syncChildNameInDiary(child,oldName);}finally{suppressRenameDiary=false;}
+          if(typeof recordCommunityEvent==='function')recordCommunityEvent(child,`改名：${oldName}改名为${newName}——当年在医院里被抱错的孩子认回了亲生父母，改随${surnameOwner?surnameOwner.name+'家':'亲生父母家'}的姓（${newSurname}）。`,'改名');
+        }
+      }
+      /* ② 煽情文案只写给居民 */
+      const npcBio=bioParents.filter(person=>String(person.id)!=='player');
+      const npcRaisers=raisers.filter(person=>String(person.id)!=='player');
+      const tellNpc=(person,text)=>{if(!person||!text)return;diaryEventTypes.set(text,'宝宝出生啦');addNpcDiary(person,text);};
+      npcBio.forEach((person,index)=>tellNpc(person,fillHospitalSwapLine(HOSPITAL_JOY_LINES[index%HOSPITAL_JOY_LINES.length],person.name,child.name)));
+      npcRaisers.forEach((person,index)=>tellNpc(person,fillHospitalSwapLine(HOSPITAL_RELUCTANT_LINES[index%HOSPITAL_RELUCTANT_LINES.length],person.name,child.name)));
+      if(String(child.id)!=='player'){
+        const bioLabel=npcBio.map(person=>person.name).join('、')||'亲生父母';
+        const raiserLabel=npcRaisers.map(person=>person.name).join('、')||'养父母';
+        tellNpc(child,`我在${raiserLabel}家叫了十几年的「爸妈」，如今要回到${bioLabel}身边。我一边为见到生身父母而雀跃，一边忍不住回头，看了${raiserLabel}好几眼。`);
+      }
+      /* ③ 兄弟姐妹：老家庭要送他/她走，新家庭要接纳他/她 —— 好感度随机涨落，文案跟着涨落走 */
+      const siblingPool=person=>(person&&person.children||[]).filter(sibling=>sibling&&sibling!==child&&sibling.alive!==false&&String(sibling.id)!=='player');
+      const dedupeSiblings=list=>list.filter((sibling,index,all)=>sibling&&all.indexOf(sibling)===index);
+      const oldSiblings=dedupeSiblings(raisers.reduce((list,person)=>list.concat(siblingPool(person)),[]));
+      const newSiblings=dedupeSiblings(bioParents.reduce((list,person)=>list.concat(siblingPool(person)),[]));
+      const siblingReaction=(sibling,gaining)=>{
+        if(!sibling||String(sibling.id)==='player')return;
+        const roll=Math.random();
+        const mood=roll<.4?'accept':(roll<.75?'hostile':'cold');
+        const delta=mood==='accept'?randomBetween(5,20):(mood==='hostile'?-randomBetween(5,20):randomBetween(-2,2));
+        if(delta!==0){
+          const current=Number(getNpcRelation(sibling,child).affinity)||0;
+          setPairAffinity(sibling,child,Math.max(0,Math.min(100,current+delta)));
+        }
+        const pool=gaining?HOSPITAL_SIBLING_WELCOME_LINES:HOSPITAL_SIBLING_FAREWELL_LINES;
+        const lines=pool[mood]||pool.accept;
+        const text=fillHospitalSwapLine(lines[Math.floor(Math.random()*lines.length)]||pool.accept[0],sibling.name,child.name);
+        diaryEventTypes.set(text,'宝宝出生啦');
+        addNpcDiary(sibling,text);
+      };
+      oldSiblings.forEach(sibling=>siblingReaction(sibling,false));
+      newSiblings.filter(sibling=>oldSiblings.indexOf(sibling)<0).forEach(sibling=>siblingReaction(sibling,true));
+      /* ③ 主控：不煽情、不弹窗，只写一句平实的记录 */
+      const playerIsBio=bioParents.some(person=>String(person.id)==='player');
+      const playerIsRaiser=raisers.some(person=>String(person.id)==='player');
+      if(playerIsBio||playerIsRaiser){
+        const text=playerIsBio
+          ? `主控知道了原来${oldName}当年在医院里被抱错了，如今已经找回来了，给${oldName}改了姓（现在叫${newName}），接回家中。`
+          : `主控知道了原来${oldName}当年在医院里被抱错了；如今${oldName}已经改随亲生父母的姓（现在叫${newName}），回到了亲生父母家中。`;
+        diaryEventTypes.set(text,'宝宝出生啦');
+        addDiary(text);
+      }
+    }
+    /* ===== 抱错的第一次察觉：孩子 15~18 岁时「越长越不像自己」→ 调查 → 真相 =====
+       这一步只是「知道」：孩子还在原来的家里长大，30 岁那次正式寻亲换回照旧走原逻辑。
+       文案不含「母亲 / 产房」这类词，男孕（孕育者是父亲的那位）同样说得通。 */
+    function processHospitalSwapResemblanceReveal(){
+      const everyone=((typeof getAllPeople==='function'?getAllPeople():null)||[]);
+      everyone.forEach(child=>{
+        if(!child||child.alive===false||child.hospitalSwitched!==true||child.hospitalEarlyRevealDone===true||child.hospitalReunited===true)return;
+        const age=Number(child.age);
+        if(!(age>=15&&age<=18))return;
+        const raisers=(child.parentIds||[]).map(id=>findAnyPerson(id)).filter(person=>person&&person.alive!==false);
+        if(!raisers.length)return;
+        /* 主控不会起疑心：会「越看越不像」、会跑去医院调查的只能是居民（主控只会从小区纪事里知道） */
+        const suspecters=raisers.filter(person=>String(person.id)!=='player');
+        if(!suspecters.length)return;
+        let noticer=suspecters[0],difference=0;
+        suspecters.forEach(person=>{
+          const value=hospitalSwapLookDifference(child,person);
+          if(value>=difference){difference=value;noticer=person;}
+        });
+        /* 越不像越容易被看出来：每月约 0.6%~3.6%，15~18 岁四年下来多半会水落石出 */
+        if(Math.random()>=0.006+difference*0.03)return;
+        child.hospitalEarlyRevealDone=true;
+        const other=child.hospitalSwapId?findAnyPerson(child.hospitalSwapId):null;
+        if(other)other.hospitalEarlyRevealDone=true;
+        const nameOf=person=>person&&person.name?person.name:'对方';
+        const tell=(person,text)=>{
+          if(!person||!text)return;
+          diaryEventTypes.set(text,'宝宝出生啦');
+          if(String(person.id)==='player')addDiary(text);else addNpcDiary(person,text);
+        };
+        const line=HOSPITAL_REVEAL_LINES[Math.floor(Math.random()*HOSPITAL_REVEAL_LINES.length)]||HOSPITAL_REVEAL_LINES[0];
+        tell(noticer,fillHospitalRevealLine(line,noticer,child));
+        raisers.filter(person=>person!==noticer&&String(person.id)!=='player').forEach(person=>{
+          tell(person,`${child.name}越长越不像${nameOf(noticer)}，一查才知道当年医院里抱错了孩子。${nameOf(person)}在医院走廊上站了很久。`);
+        });
+        if(other)tell(child,`我一直以为${nameOf(noticer)}就是我的亲生父母，可鉴定结果说，当年医院里把我和${other.name}抱错了。`);
+        else tell(child,`我一直以为${nameOf(noticer)}就是我的亲生父母，可鉴定结果说，当年医院里把我抱错了。`);
+        const bioNames=(child.biologicalParentIds||[]).map(id=>nameOf(findAnyPerson(id))).filter(Boolean).join('、');
+        const oldChildName=child.name;
+        /* 当场认回：改随亲生父母的姓、写煽情文案，然后真的把孩子换回去 ——
+           15~18 岁这一次就是最终结果，30 岁那场「自己寻亲」不再触发。 */
+        hospitalReunionFor(child,other);
+        if(other)hospitalReunionFor(other,child);
+        child.hospitalSearchDone=true;
+        if(other)other.hospitalSearchDone=true;
+        if(typeof reuniteHospitalChildren==='function')reuniteHospitalChildren(child,other||child);
+        syncPlayerChildListsAfterSwap([child,other].filter(Boolean));
+        const eventText=`${nameOf(noticer)}觉得孩子越长越不像自己，去医院一查才发现当年医院抱错了：${oldChildName}的亲生父母其实是${bioNames||'另一家人'}${other?`，而${other.name}才是${nameOf(noticer)}家的孩子`:''}。真相揭开后，两个孩子当场认回了亲生父母，各自改姓归家。`;
+        recordCommunityEvent(child,eventText,'医院抱错');
+      });
+    }
+    const hospitalSwapAwareProcessHospitalSwaps=processHospitalSwaps;
+    processHospitalSwaps=()=>{
+      hospitalSwapAwareProcessHospitalSwaps();
+      applyHospitalSwapEffects();
+      processHospitalSwapResemblanceReveal();
+    };
+    normalizePosthumousTraits();
+    linkPosthumousChildrenToParents();
   </script>
 </body>
 </html>
