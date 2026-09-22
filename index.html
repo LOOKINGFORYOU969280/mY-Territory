@@ -98,6 +98,12 @@
       background:linear-gradient(135deg, rgba(255,255,255,.65), transparent 35%, rgba(121,98,76,.04) 100%);
     }
     .layer { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+    .npc-avatar .hair-layer, .mini-portrait .hair-layer { z-index:10 !important; }
+    .portrait-wrap .hair-layer { z-index:4 !important; }
+    .npc-avatar img[src*="圣女发型"], .npc-avatar img[src*="圣女发饰"], .mini-portrait img[src*="圣女发型"], .mini-portrait img[src*="圣女发饰"] { z-index:3 !important; }
+    .npc-avatar img[src*="圣骑士发型"], .npc-avatar img[src*="圣骑士发饰"] { z-index:3 !important; }
+    .npc-avatar img[src*="男的头发"] { z-index:4 !important; }
+    .npc-avatar img[data-eye-layer], .mini-portrait img[data-eye-layer] { z-index:1 !important; }
     .skin-layer { filter:var(--skin-filter); }
     .hair-layer { filter:var(--hair-filter); }
     .portrait-caption { display:flex; align-items:center; justify-content:center; gap:13px; margin-top:17px; color:var(--muted); font-size:12px; }
@@ -127,6 +133,10 @@
       backdrop-filter:blur(10px) saturate(1.06);
     }
     .section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+    .color-tabs { display:flex; gap:7px; align-items:center; padding:4px; border:1px solid rgba(232,224,216,.15); border-radius:14px; background:rgba(24,27,31,.28); }
+    .color-tab { border:1px solid transparent; border-radius:10px; background:transparent; color:var(--muted); font:inherit; font-weight:700; padding:7px 13px; cursor:pointer; transition:.18s ease; }
+    .color-tab:hover { color:var(--ink); background:rgba(127,169,140,.1); }
+    .color-tab.active { color:#fff; border-color:rgba(127,169,140,.65); background:linear-gradient(135deg,#7fa98c,#5f8f75); box-shadow:0 4px 12px rgba(72,111,87,.25), inset 0 1px 0 rgba(255,255,255,.18); }
     h2 { margin:0; font-size:17px; letter-spacing:0; font-weight:700; }
     .section-index { font:11px 'SF Pro Display','DM Mono'; color:var(--red); }
     .identity-grid { display:grid; grid-template-columns:1.5fr 1fr; gap:12px; }
@@ -169,6 +179,10 @@
       box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
     }
     .load-names:hover { background:linear-gradient(135deg, rgba(243,203,115,.9), rgba(255,149,108,.7)); color:#14191d; }
+    /* 业主群标题右侧：人数 + 「刷新」换一批（每页 4 人，只为减少渲染量） */
+    .group-head-right { display:flex; align-items:center; gap:9px; }
+    .group-head-right #groupCount { font:10px 'SF Pro Display','DM Mono'; color:var(--muted); }
+    .group-refresh { margin-top:0; padding:5px 11px; border-radius:10px; font-weight:700; cursor:pointer; }
     .name-status { display:block; margin-top:7px; color:var(--muted); font:10px 'SF Pro Display','DM Mono'; }
     .birth-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .fixed-age {
@@ -906,6 +920,99 @@
     @media (max-width:700px) { .game-topbar { align-items:flex-start; gap:12px; flex-direction:column; } .game-layout { grid-template-columns:1fr; } .game-sidebar { display:grid; grid-template-columns:repeat(3,1fr); } .nav-item { flex-direction:column; gap:5px; padding:9px 4px; font-size:10px; text-align:center; } .desktop { min-height:700px; padding:14px; } .desktop-content { height:620px; } .npc-list { grid-template-columns:1fr; } .player-card { grid-column:auto; display:block; } .mini-portrait { margin-bottom:12px; } }
     @media (max-width:850px) { .shell { padding:22px 20px 36px; } .workspace { grid-template-columns:1fr; gap:38px; } .portrait-column { position:static; max-width:520px; margin:auto; width:100%; } }
     @media (max-width:480px) { .identity-grid { grid-template-columns:1fr; } .trait-grid { grid-template-columns:1fr; } .workspace { gap:30px; } }
+    /* ===== 手机版捏人页：预览头像做成「顶部吸附的小条」，一边拖滑杆一边能看见脸 ===== */
+    @media (max-width:850px) {
+      .shell { padding:16px 14px 40px; }
+      .workspace { gap:16px; }
+      .portrait-column {
+        position:sticky;
+        top:6px;
+        z-index:20;
+        display:grid;
+        grid-template-columns:104px minmax(0,1fr);
+        grid-template-rows:auto auto;
+        gap:6px 12px;
+        align-items:center;
+        text-align:left;
+        padding:8px 12px;
+        border-radius:20px;
+        background:linear-gradient(180deg, rgba(60,65,72,.95), rgba(40,45,51,.96));
+        box-shadow:0 10px 26px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
+      }
+      html[data-theme="day"] .portrait-column { background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(244,240,250,.96)); }
+      .portrait-meta { display:none; }
+      .portrait-wrap { grid-column:1; grid-row:1 / span 2; width:104px; max-width:104px; margin:0; border-radius:18px; }
+      .portrait-caption { grid-column:2; grid-row:1; margin:0; justify-content:flex-start; gap:10px; font-size:12px; }
+      .portrait-caption .dice { width:46px; height:46px; font-size:22px; }
+      .creator-theme-toggle { grid-column:2; grid-row:2; margin:0; min-height:42px; }
+      /* 滑杆更好按：轨道加粗、滑块放大 */
+      input[type=range] { height:6px; }
+      input[type=range]::-webkit-slider-thumb { width:22px; height:22px; }
+      input[type=range]::-moz-range-thumb { width:20px; height:20px; }
+      .range-line { grid-template-columns:58px 1fr 44px; gap:10px; font-size:13px; }
+      .range-line small { font-size:12px; }
+      .section { padding:15px 15px 12px; border-radius:20px; }
+      .section-head h2 { font-size:16px; }
+      input:not([type=range]), select { min-height:44px; }
+      .fixed-age { height:44px; }
+      .name-row .mini-dice { width:46px; height:46px; }
+      .load-names { min-height:42px; font-size:12px; }
+      .hint { font-size:12px; }
+    }
+    @media (max-width:700px) {
+      .portrait-column { grid-template-columns:92px minmax(0,1fr); padding:7px 10px; }
+      .portrait-wrap { width:92px; max-width:92px; }
+      .trait-grid { grid-template-columns:1fr; }
+      .trait { grid-template-columns:42px 1fr 42px; gap:6px; padding:6px 8px; }
+      .trait button { width:42px; height:42px; font-size:25px; }
+      .identity-grid { grid-template-columns:1fr; }
+      .sliders { gap:12px; }
+      .save-row { justify-content:stretch; }
+      .save-row .primary { flex:1; min-height:52px; font-size:15px; }
+    }
+    @media (max-width:480px) {
+      .portrait-caption span { display:none; }
+      .creator-theme-toggle .theme-toggle-label { display:none; }
+      .portrait-column { grid-template-columns:84px minmax(0,1fr); gap:6px 10px; }
+      .portrait-wrap { width:84px; max-width:84px; }
+    }
+    /* ===== 手机版业主群：每页只有 4 人，所以改成「大卡片 + 大按钮」，方便拇指点选 ===== */
+    @media (max-width:700px) {
+      .panel { padding:12px; }
+      /* 侧栏：辖区按钮整行铺开（否则会被 3 列导航挤成一小格） */
+      .game-sidebar .district-title, .game-sidebar .district-grid { grid-column:1 / -1; }
+      .game-sidebar .district-grid { gap:6px; }
+      .district-button { min-height:48px; font-size:15px; }
+      .district-button span { font-size:10px; }
+      /* 标题行：人数 + 「刷新」 */
+      #groupPanel .panel-heading { flex-wrap:wrap; gap:8px; }
+      #groupPanel .panel-heading h2 { font-size:17px; }
+      .group-head-right { width:100%; justify-content:space-between; }
+      .group-head-right #groupCount { font-size:12px; }
+      .group-refresh { min-height:44px; padding:11px 20px; font-size:14px; border-radius:12px; }
+      /* 批次工具条：两列大按钮 */
+      #groupPanel .batch-toolbar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+      #groupPanel .batch-count { grid-column:1 / -1; margin:0; font-size:12px; }
+      #groupPanel .batch-toolbar button { min-height:44px; font-size:14px; border-radius:12px; }
+      /* 居民卡片（业主群与联系人共用同一套行样式，一起改） */
+      #npcList, #contactList { grid-template-columns:1fr; gap:12px; }
+      #npcList .npc-row, #contactList .npc-row { grid-template-columns:68px minmax(0,1fr); gap:12px; align-items:start; padding:12px; border-radius:18px; }
+      #npcList .npc-avatar, #contactList .npc-avatar { width:68px; height:68px; }
+      #npcList .npc-select, #contactList .npc-select { width:24px; height:24px; top:8px; left:8px; }
+      #npcList .star, #contactList .star { width:32px; height:32px; font-size:18px; top:-8px; right:-8px; }
+      #npcList .npc-name, #contactList .npc-name { font-size:17px; }
+      #npcList .npc-meta, #contactList .npc-meta { font-size:12px; margin-top:4px; }
+      #npcList .relationship, #contactList .relationship { height:7px; margin-top:7px; }
+      /* 互动按钮：两列网格、每个至少 44px 高，并去掉桌面版给「亲热 / 求婚」加的左右留白 */
+      #npcList .npc-actions, #contactList .npc-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
+      #npcList .npc-actions button, #contactList .npc-actions button { min-height:44px; padding:10px 8px; font-size:14px; border-radius:12px; margin:0; }
+      #npcList .npc-actions .npc-meta, #contactList .npc-actions .npc-meta { grid-column:1 / -1; }
+    }
+    @media (max-width:480px) {
+      #npcList .npc-row, #contactList .npc-row { grid-template-columns:60px minmax(0,1fr); padding:10px; }
+      #npcList .npc-avatar, #contactList .npc-avatar { width:60px; height:60px; }
+      #npcList .npc-actions button, #contactList .npc-actions button { font-size:13px; min-height:42px; }
+    }
     /* ===== 日间模式 THEME: DAY —— 淡紫 / 淡绿 / 米白，柔和不刺眼 ===== */
     html[data-theme="day"] {
       --ink:#4c4560;
@@ -949,6 +1056,10 @@
       background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(243,239,250,.78));
       box-shadow:0 12px 26px rgba(148,130,178,.08), inset 0 1px 0 rgba(255,255,255,.9);
     }
+    html[data-theme="day"] .color-tabs { border-color:rgba(148,130,178,.2); background:rgba(235,230,245,.62); }
+    html[data-theme="day"] .color-tab { color:#8e83a5; }
+    html[data-theme="day"] .color-tab:hover { color:#514866; background:rgba(127,169,140,.12); }
+    html[data-theme="day"] .color-tab.active { color:#fff; border-color:rgba(96,143,117,.6); background:linear-gradient(135deg,#7fa98c,#5f8f75); box-shadow:0 4px 12px rgba(96,143,117,.22), inset 0 1px 0 rgba(255,255,255,.45); }
     html[data-theme="day"] .dice {
       border-color:rgba(148,130,178,.22);
       background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(240,235,249,.86));
@@ -1187,13 +1298,12 @@
         <div class="portrait-meta"><span>PORTRAIT PREVIEW</span><strong>● LIVE</strong></div>
         <div class="portrait-wrap" id="portrait">
           <img class="layer skin-layer" src="男的脸型1.png" alt="基础脸型">
-          <img class="layer" id="eyes" src="男的眼睛1.png" alt="眼睛">
           <img class="layer" id="brows" src="男的眉毛1.png" alt="眉毛">
           <img class="layer" id="nose" src="男的鼻子1.png" alt="鼻子">
           <img class="layer" id="mouth" src="男的嘴1.png" alt="嘴">
           <img class="layer hair-layer" id="hair" src="男的头发1.png" alt="头发">
         </div>
-        <div class="portrait-caption"><button class="dice" id="randomFace" title="随机组合五官脸型发型">⚄</button><span>随机组合五官 · 脸型 · 发型</span></div>
+        <div class="portrait-caption"><button class="dice" id="randomFace" title="随机组合五官、脸型、发型与色彩">⚄</button><span>随机组合五官 · 脸型 · 发型 · 色彩</span></div>
         <button class="theme-toggle creator-theme-toggle" id="creatorThemeToggle" type="button" aria-pressed="true" title="当前为日间模式：点击切换到夜间"><span class="theme-toggle-icon icon-moon" aria-hidden="true"></span><span class="theme-toggle-label">切换到夜间模式</span></button>
       </section>
       <section class="controls">
@@ -1239,11 +1349,12 @@
             <div><label for="month">生日</label><div class="birth-row"><select id="month"></select><select id="day"></select></div></div>
           </div>
         </div>
-        <div class="section"><div class="section-head"><h2>头发色彩</h2><span class="section-index">02 / HAIR COLOR</span></div>
+        <div class="section"><div class="section-head"><div class="color-tabs"><button class="color-tab active" id="hairColorTab" type="button" data-color-mode="hair">头发色彩</button><button class="color-tab" id="eyeColorTab" type="button" data-color-mode="eye">虹膜色彩</button></div><span class="section-index">02 / COLOR</span></div>
           <div class="sliders">
             <div class="range-line"><label for="hue">色相</label><input id="hue" type="range" min="-100" max="100" value="0"><small id="hueValue">+0</small></div>
             <div class="range-line"><label for="lightness">明度</label><input id="lightness" type="range" min="-200" max="200" value="0"><small id="lightnessValue">+0</small></div>
             <div class="range-line"><label for="saturation">彩度</label><input id="saturation" type="range" min="-100" max="100" value="0"><small id="saturationValue">+0</small></div>
+            <p class="hint">发色与虹膜色彩（色相 / 明度 / 彩度）都会写入角色遗传属性，并遗传给后代。</p>
           </div>
         </div>
         <div class="section"><div class="section-head"><h2>遗传肤色</h2><span class="section-index">03 / HERITAGE</span></div>
@@ -1290,8 +1401,8 @@
               <div class="page-actions"><button id="firstDiary">到最前</button><button id="previousDiary">&lt; 上个月</button><button id="nextDiary">下个月 &gt;</button><button id="lastDiary">到最后</button></div>
             </div>
             <div class="panel" id="groupPanel" hidden>
-              <div class="panel-heading"><h2>业主群 · <span id="districtLabel">中宫</span></h2><span id="groupCount">0 人</span></div>
-              <div class="batch-toolbar" data-batch-scope="group"><span class="batch-count">已选择 0 人</span><button type="button" data-batch-action="selectAll">全选本区</button><button type="button" data-batch-action="clear">清空选择</button><button type="button" data-batch-action="star" disabled>批量星标</button><button type="button" data-batch-action="expel" disabled>批量驱逐</button><button type="button" data-batch-action="district" disabled>批量换辖区</button></div>
+              <div class="panel-heading"><h2>业主群 · <span id="districtLabel">中宫</span></h2><span class="group-head-right"><span id="groupCount">0 人</span><button class="load-names group-refresh" id="refreshResidents" type="button" title="换一批居民（每页 4 人）">刷新</button></span></div>
+              <div class="batch-toolbar" data-batch-scope="group"><span class="batch-count">已选择 0 人</span><button type="button" data-batch-action="selectAll">全选本页</button><button type="button" data-batch-action="clear">清空选择</button><button type="button" data-batch-action="star" disabled>批量星标</button><button type="button" data-batch-action="expel" disabled>批量驱逐</button><button type="button" data-batch-action="district" disabled>批量换辖区</button></div>
               <div class="npc-list" id="npcList"></div>
             </div>
             <div class="panel" id="contactsPanel" hidden>
@@ -1413,11 +1524,96 @@
     </section>
   </div>
   <script>
-    let parts = { hair:{label:'发型', prefix:'男的头发', count:8, id:'hair'}, face:{label:'脸型', prefix:'男的脸型', count:8, id:null}, eyes:{label:'眼睛', prefix:'男的眼睛', count:7, id:'eyes'}, brows:{label:'眉毛', prefix:'男的眉毛', count:7, id:'brows'}, nose:{label:'鼻子', prefix:'男的鼻子', count:8, id:'nose'}, mouth:{label:'嘴', prefix:'男的嘴', count:7, id:'mouth'} };
-      const state = { hair:1, face:1, eyes:1, brows:1, nose:1, mouth:1 };
+    let parts = { hair:{label:'发型', prefix:'男的头发', count:8, id:'hair'}, face:{label:'脸型', prefix:'男的脸型', count:8, id:null}, eyes:{label:'眼眶', prefix:'男通用眼睛/男的眼眶', count:7, id:null}, brows:{label:'眉毛', prefix:'男的眉毛', count:7, id:'brows'}, nose:{label:'鼻子', prefix:'男的鼻子', count:8, id:'nose'}, mouth:{label:'嘴', prefix:'男的嘴', count:7, id:'mouth'} };
+      const state = { hair:1, face:1, eyes:1, eyeWhite:1, brows:1, nose:1, mouth:1, eyeHue:0, eyeLightness:0, eyeSaturation:0 };
+    /* 五官 = 脸型 / 眼眶 / 眉毛 / 鼻子 / 嘴（眼眶代替了旧的「眼睛」槽位，同样参与五官遗传）；
+       眼白只有一张固定素材、不参与遗传，所以不再单独列为可选项；眼睛颜色由虹膜三值遗传。 */
     const traitOrder = ['hair','face','eyes','brows','nose','mouth'];
     const traits = document.getElementById('traits');
+    const eyeWhiteFile = '女通用眼睛/女眼白.png';
+    const eyeIrisFile = '女通用眼睛/女虹膜.png';
+    const maleEyeWhiteFile = '男通用眼睛/男眼白.png';
+    const maleEyeIrisFile = '男通用眼睛/男虹膜.png';
+    const maleEyeOrbitFiles = ['男的眼眶1.png','男的眼眶2.png','男的眼眶3.png','男的眼眶4.png','男的眼眶5.png','男的眼眶6.png','男的眼眶7.png'];
     const image = key => `${parts[key].prefix}${state[key]}.png`;
+    function makeFemaleEyeLayerStack({ orbit = 1, white = 1, hue = 0, lightness = 0, saturation = 0, skinLightness = 0 } = {}) {
+      const baseBrightness = 100 + Number(skinLightness || 0) / 2;
+      const irisLayer = document.createElement('img');
+      irisLayer.className = 'layer';
+      irisLayer.style.zIndex = '2';
+      irisLayer.src = eyeIrisFile;
+      irisLayer.alt = '虹膜';
+      irisLayer.style.filter = `hue-rotate(${Number(hue || 0) * 2.4}deg) saturate(${Math.max(0.05, 1.3 + Number(saturation || 0) / 100)}) brightness(${Math.max(0, baseBrightness + Number(lightness || 0))}%)`;
+
+      const whiteLayer = document.createElement('img');
+      whiteLayer.className = 'layer';
+      whiteLayer.style.zIndex = '1';
+      whiteLayer.src = eyeWhiteFile;
+      whiteLayer.alt = '眼白';
+      whiteLayer.style.filter = 'none';
+
+      const orbitLayer = document.createElement('img');
+      orbitLayer.className = 'layer';
+      orbitLayer.style.zIndex = '3';
+      orbitLayer.src = `女通用眼睛/女眼眶${Number(orbit || 1)}.png`;
+      orbitLayer.alt = '眼眶';
+      orbitLayer.style.filter = `brightness(${baseBrightness}%)`;
+
+      return [irisLayer, whiteLayer, orbitLayer];
+    }
+    function makeMaleEyeLayerStack({ orbit = 1, hue = 0, lightness = 0, saturation = 0 } = {}) {
+      const irisLayer = document.createElement('img');
+      irisLayer.className = 'layer';
+      irisLayer.style.zIndex = '2';
+      irisLayer.src = maleEyeIrisFile;
+      irisLayer.alt = '虹膜';
+      irisLayer.style.filter = `hue-rotate(${Number(hue || 0) * 2.4}deg) saturate(${Math.max(0.05, 1.3 + Number(saturation || 0) / 100)}) brightness(${Math.max(0, 100 + Number(lightness || 0))}%)`;
+      const whiteLayer = document.createElement('img');
+      whiteLayer.className = 'layer';
+      whiteLayer.style.zIndex = '1';
+      whiteLayer.src = maleEyeWhiteFile;
+      whiteLayer.alt = '眼白';
+      whiteLayer.style.filter = 'none';
+      const orbitLayer = document.createElement('img');
+      orbitLayer.className = 'layer';
+      orbitLayer.style.zIndex = '3';
+      orbitLayer.src = `男通用眼睛/${maleEyeOrbitFiles[Math.max(0, Math.min(maleEyeOrbitFiles.length - 1, Number(orbit || 1) - 1))]}`;
+      orbitLayer.alt = '眼眶';
+      orbitLayer.style.filter = 'none';
+      return [irisLayer, whiteLayer, orbitLayer];
+    }
+    function refreshCreatorEyeLayers() {
+      const portrait = document.getElementById('portrait');
+      const brows = document.getElementById('brows');
+      const existingEyeLayers = [...portrait.querySelectorAll('[data-eye-layer]')];
+      existingEyeLayers.forEach(layer => layer.remove());
+      const eyeGender = document.getElementById('gender').value;
+      if (eyeGender !== '女') {
+        const [maleIris, maleWhite, maleOrbit] = makeMaleEyeLayerStack({ orbit: Number(state.eyes || 1), hue: Number(state.eyeHue || 0), lightness: Number(state.eyeLightness || 0), saturation: Number(state.eyeSaturation || 0) });
+        maleOrbit.dataset.eyeLayer = 'orbit';
+        maleWhite.dataset.eyeLayer = 'white';
+        maleIris.dataset.eyeLayer = 'iris';
+        portrait.insertBefore(maleOrbit, brows);
+        portrait.insertBefore(maleIris, brows);
+        portrait.insertBefore(maleWhite, brows);
+        return;
+      }
+      const baseOptions = {
+        orbit: Number(state.eyes || 1),
+        white: Number(state.eyeWhite || 1),
+        hue: Number(state.eyeHue || 0),
+        lightness: Number(state.eyeLightness || 0),
+        saturation: Number(state.eyeSaturation || 0),
+        skinLightness: Number(document.getElementById('skin').value || 0)
+      };
+      const [irisLayer, whiteLayer, orbit] = makeFemaleEyeLayerStack(baseOptions);
+      orbit.dataset.eyeLayer = 'orbit';
+      whiteLayer.dataset.eyeLayer = 'white';
+      irisLayer.dataset.eyeLayer = 'iris';
+      portrait.insertBefore(orbit, brows);
+      portrait.insertBefore(irisLayer, brows);
+      portrait.insertBefore(whiteLayer, brows);
+    }
     function applyGenderNameTemplate(gender) {
       document.getElementById('surname').value = '黄';
       document.getElementById('givenName').value = '毛';
@@ -1425,19 +1621,27 @@
     }
     function setCreatorGender(gender) {
       const female = gender === '女';
-      const prefixes = female ? { hair:'女头发', face:'女脸型', eyes:'女眼睛', brows:'女眉毛', nose:'女鼻子', mouth:'女嘴' } : { hair:'男的头发', face:'男的脸型', eyes:'男的眼睛', brows:'男的眉毛', nose:'男的鼻子', mouth:'男的嘴' };
-      const counts = female ? { hair:8, face:6, eyes:7, brows:6, nose:10, mouth:8 } : { hair:8, face:8, eyes:7, brows:7, nose:8, mouth:7 };
+      const prefixes = female ? { hair:'女头发', face:'女脸型', eyes:'女通用眼睛/女眼眶', brows:'女眉毛', nose:'女鼻子', mouth:'女嘴' } : { hair:'男的头发', face:'男的脸型', eyes:'男通用眼睛/男的眼眶', brows:'男的眉毛', nose:'男的鼻子', mouth:'男的嘴' };
+      const counts = female ? { hair:8, face:6, eyes:6, brows:6, nose:10, mouth:8 } : { hair:8, face:8, eyes:7, brows:7, nose:8, mouth:7 };
       parts = Object.fromEntries(traitOrder.map(key => [key, { label:parts[key].label, prefix:prefixes[key], count:counts[key], id:parts[key].id }]));
       traitOrder.forEach(key => { state[key] = Math.min(state[key], parts[key].count); });
-      traitOrder.forEach(key => { if (key === 'face') document.querySelector('.skin-layer').src=image(key); else document.getElementById(parts[key].id).src=image(key); });
+      if (female) {
+        state.eyeWhite = 1;
+      }
+      refreshCreatorEyeLayers();
+      document.querySelector('.skin-layer').src = image('face');
+      ['hair','brows','nose','mouth'].forEach(key => {
+        const layer = document.getElementById(parts[key].id);
+        if (layer) layer.src = image(key);
+      });
       applyGenderNameTemplate(gender);
       updateTraits();
     }
-    function cycle(key, amount) { state[key] = (state[key] - 1 + amount + parts[key].count) % parts[key].count + 1; if (key === 'face') document.querySelector('.skin-layer').src = image(key); else document.getElementById(parts[key].id).src = image(key); updateTraits(); }
+    function cycle(key, amount) { state[key] = (state[key] - 1 + amount + parts[key].count) % parts[key].count + 1; if (key === 'face') document.querySelector('.skin-layer').src = image(key); else if (key === 'eyes' || key === 'eyeWhite') { refreshCreatorEyeLayers(); } else { document.getElementById(parts[key].id).src = image(key); } updateTraits(); }
     function updateTraits() { traits.innerHTML = traitOrder.map(key => `<div class="trait"><button data-key="${key}" data-step="-1" aria-label="上一个${parts[key].label}">&lt;</button><div class="trait-info"><span class="trait-name">${parts[key].label}</span><span class="trait-value">${String(state[key]).padStart(2,'0')} / ${String(parts[key].count).padStart(2,'0')}</span></div><button data-key="${key}" data-step="1" aria-label="下一个${parts[key].label}">&gt;</button></div>`).join(''); }
     traits.addEventListener('click', e => { const button = e.target.closest('button'); if (button) cycle(button.dataset.key, Number(button.dataset.step)); });
     document.getElementById('randomFace').addEventListener('click', () => traitOrder.forEach(key => { state[key] = Math.floor(Math.random() * parts[key].count) + 1; }));
-    document.getElementById('randomFace').addEventListener('click', () => { traitOrder.forEach(key => { if (key === 'face') document.querySelector('.skin-layer').src=image(key); else document.getElementById(parts[key].id).src=image(key); }); ['hue','lightness','saturation','skin'].forEach(id => { const input=document.getElementById(id); input.value=Math.floor(Math.random()*(Number(input.max)-Number(input.min)+1))+Number(input.min); input.dispatchEvent(new Event('input')); }); updateTraits(); });
+    document.getElementById('randomFace').addEventListener('click', () => { traitOrder.forEach(key => { if (key === 'face') document.querySelector('.skin-layer').src=image(key); else if (key === 'eyes') { return; } else { document.getElementById(parts[key].id).src=image(key); } }); /* 随机头发色彩（不受当前标签影响，永远是头发区间：色相 ±100 / 明度 ±200 / 彩度 ±100） */ hairHue=randomBetween(-100,100); hairLight=randomBetween(-200,200); hairSat=randomBetween(-100,100); applyHair(); /* 随机虹膜色彩：色相 / 明度 / 彩度都是 ±100（与「虹膜色彩」标签下滑杆区间一致），随后会被写进角色遗传属性 */ state.eyeHue=randomBetween(-100,100); state.eyeLightness=randomBetween(-100,100); state.eyeSaturation=randomBetween(-100,100); const skinInput=document.getElementById('skin'); skinInput.value=Math.floor(Math.random()*(Number(skinInput.max)-Number(skinInput.min)+1))+Number(skinInput.min); skinInput.dispatchEvent(new Event('input')); setColorMode(colorMode); refreshCreatorEyeLayers(); updateTraits(); });
     const names = ['黄大毛','黄小满','黄远山','黄树生','黄阿明','黄野川','黄新禾','黄石头','黄嘉木','黄一鸣'];
     const fallbackNamePools = {
       maleFirst: ['宇','浩','嘉','俊','文','博','志','宏','建','天','明','泽','晨','思','逸','奕','承','砚','清','温','斐','楚','白','晏','景','行','远','川','安','海','成','光','桓','星','云','雨','山','松','柏','月','霜','羽','玄','绮','珂','铭','语','欢','秋','霁','涵','岚','霄','柯','嘉','远','昊','哲','凯','尧','萧','骏','楠','澄','越','岑','迟','永','若','涵','远','雁','景','澈','岚'],
@@ -1550,13 +1754,14 @@
     }
     document.getElementById('month').addEventListener('change', refreshDays); document.getElementById('age').addEventListener('change', syncBirthdayFromAge); document.getElementById('month').value=1; refreshDays(); document.getElementById('day').value=1; syncBirthdayFromAge();
     function bindRange(id, output, callback) { const input=document.getElementById(id), label=document.getElementById(output); const update=()=>{ const value=Number(input.value); label.textContent=(value>=0?'+':'')+value; input.style.background=`linear-gradient(90deg, var(--teal) ${(value+Number(input.max))/(Number(input.max)-Number(input.min))*100}%, rgba(164,176,188,.25) 0)`; callback(value); }; input.addEventListener('input',update); update(); }
-    let hairHue=0,hairLight=0,hairSat=0; function applyHair(){ const tint=Math.max(0,35+hairSat*.65); const saturation=Math.max(0,160+hairSat*2.4); document.documentElement.style.setProperty('--hair-filter',`sepia(${tint}%) saturate(${saturation}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLight/2}%)`); }
-    bindRange('hue','hueValue',v=>{hairHue=v;applyHair();}); bindRange('lightness','lightnessValue',v=>{hairLight=v;applyHair();}); bindRange('saturation','saturationValue',v=>{hairSat=v;applyHair();}); bindRange('skin','skinValue',v=>document.documentElement.style.setProperty('--skin-filter',`brightness(${100+v/2}%)`));
+    let hairHue=0,hairLight=0,hairSat=0; let colorMode='hair'; function applyHair(){ const tint=Math.max(0,35+hairSat*.65); const saturation=Math.max(0,160+hairSat*2.4); document.documentElement.style.setProperty('--hair-filter',`sepia(${tint}%) saturate(${saturation}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLight/2}%)`); }
+    function setColorMode(mode){ colorMode=mode; document.querySelectorAll('[data-color-mode]').forEach(tab=>tab.classList.toggle('active',tab.dataset.colorMode===mode)); const lightnessInput=document.getElementById('lightness'); lightnessInput.min=mode==='hair'?-200:-100; lightnessInput.max=mode==='hair'?200:100; const values=mode==='hair'?[hairHue,hairLight,hairSat]:[state.eyeHue,state.eyeLightness,state.eyeSaturation]; ['hue','lightness','saturation'].forEach((id,index)=>{const input=document.getElementById(id);input.value=values[index];input.dispatchEvent(new Event('input'));}); }
+    bindRange('hue','hueValue',v=>{if(colorMode==='hair'){hairHue=v;applyHair();}else{state.eyeHue=v;refreshCreatorEyeLayers();}}); bindRange('lightness','lightnessValue',v=>{if(colorMode==='hair'){hairLight=v;applyHair();}else{state.eyeLightness=v;refreshCreatorEyeLayers();}}); bindRange('saturation','saturationValue',v=>{if(colorMode==='hair'){hairSat=v;applyHair();}else{state.eyeSaturation=v;refreshCreatorEyeLayers();}}); bindRange('skin','skinValue',v=>{document.documentElement.style.setProperty('--skin-filter',`brightness(${100+v/2}%)`); refreshCreatorEyeLayers();}); document.querySelectorAll('[data-color-mode]').forEach(tab=>tab.addEventListener('click',()=>setColorMode(tab.dataset.colorMode))); setColorMode('hair');
     const districtNames = ['巽','离','坤','震','中宫','兑','艮','坎','乾'];
     const residentDistricts = districtNames.filter(name => name !== '中宫');
     const sameDistrict = (first,second) => first?.id==='player'||second?.id==='player'||(first?.district||'中宫')===(second?.district||'中宫');
     const selectedBatchPeople=new Set();
-    const game = { year:100, month:1, elapsedMonths:0, points:15, npcs:[], diary:{}, events:{}, panel:'diaryPanel', activeDistrict:'中宫', diaryView:{year:100,month:1}, eventView:{year:100,month:1}, playerChildren:[], pendingBirths:[], retiredPlayers:[], retiredPeople:[], playerAlive:true };
+    const game = { year:100, month:1, elapsedMonths:0, points:15, npcs:[], diary:{}, events:{}, panel:'diaryPanel', activeDistrict:'中宫', diaryView:{year:100,month:1}, eventView:{year:100,month:1}, playerChildren:[], pendingBirths:[], retiredPlayers:[], retiredPeople:[], playerAlive:true, districtPage:{} };
     const defaultSurnames = ['陈','沈','林','顾','陆','江','苏','谢','程','叶','温','裴','晏','楚','闻','容','白','秦','萧','郁','宁','夏','简','唐','宋','周','许'];
     const defaultCompoundSurnames = ['欧阳','司马','上官','慕容','诸葛','皇甫','南宫','东方','独孤','长孙','尉迟','公孙'];
     const getSingleSurnames = () => textNamePools.singleSurname.length ? textNamePools.singleSurname : defaultSurnames;
@@ -1565,10 +1770,11 @@
     const femaleGivenNames = ['清妍','知微','晚晴','若棠','书瑶','星晚','念慈','昭宁','云舒','映秋','听澜','南枝','月白','疏影','静姝','锦书','芷若','微澜','清越','栖迟','昭昭','如月','晚棠','初雪','令仪','含章','宜宁','书禾','浅月','知夏'];
     const modernMaleGivenNames = ['子轩','浩然','宇航','嘉豪','俊杰','泽宇','亦辰','奕凡','梓航','博文','睿哲','昊然','铭泽','凯文','晨阳','一帆','远航','嘉佑','沐阳','思远','言希','乐川','明轩','云飞','天佑','星辰','泽安','安泽','景阳','奕铭'];
     const modernFemaleGivenNames = ['欣怡','梓涵','雨桐','诗涵','可欣','梦瑶','佳宁','语嫣','若曦','欣妍','沐晴','依诺','思琪','雅婷','子晴','一诺','安琪','可心','乐瑶','语桐','念初','知遥','星妍','沐妍','晴川','悦宁','初语','心悦','予曦','佳怡'];
-    const avatarParts = { hair:{prefix:'男的头发',count:8}, face:{prefix:'男的脸型',count:8}, eyes:{prefix:'男的眼睛',count:7}, brows:{prefix:'男的眉毛',count:7}, nose:{prefix:'男的鼻子',count:8}, mouth:{prefix:'男的嘴',count:7} };
-    const femaleParts = { hair:{prefix:'女头发',count:8}, face:{prefix:'女脸型',count:6}, eyes:{prefix:'女眼睛',count:7}, brows:{prefix:'女眉毛',count:6}, nose:{prefix:'女鼻子',count:10}, mouth:{prefix:'女嘴',count:8} };
-    const saintParts = { dir:'圣女遗传库', layers:['圣女脸','圣女服饰','圣女面纹','圣女眼睛','圣女眉毛','圣女鼻子','圣女嘴巴','圣女发型','圣女发饰'] };
-    /* 圣骑士遗传库：固定 NPC「圣骑士」专用，文件夹里没有服饰/面纹，所以整栈只有 7 层（由脸到发饰）。
+    const avatarParts = { hair:{prefix:'男的头发',count:8}, face:{prefix:'男的脸型',count:8}, eyes:{prefix:'男通用眼睛/男的眼眶',count:7}, brows:{prefix:'男的眉毛',count:7}, nose:{prefix:'男的鼻子',count:8}, mouth:{prefix:'男的嘴',count:7} };
+    const femaleParts = { hair:{prefix:'女头发',count:8}, face:{prefix:'女脸型',count:6}, eyes:{prefix:'女通用眼睛/女眼眶',count:6}, eyeWhite:{prefix:'女眼白',count:1}, brows:{prefix:'女眉毛',count:6}, nose:{prefix:'女鼻子',count:10}, mouth:{prefix:'女嘴',count:8} };
+    const saintParts = { dir:'圣女遗传库', layers:['圣女脸','圣女服饰','圣女面纹','圣女眉毛','圣女鼻子','圣女嘴巴','圣女发型','圣女发饰'] };
+    /* 圣骑士遗传库：固定 NPC「圣骑士」专用，文件夹里没有服饰/面纹，所以整栈只有 6 层（由脸到发饰）；
+       眼睛统一由「眼眶 + 眼白 + 虹膜」三层整栈绘制（见 createAvatar），不占素材层。
        素材名里的数字是「部件得分」——游戏里男颜值 = 脸型分 + 眼睛分 + 鼻子分（>=18 花美男 / <=7 丑男），
        所以圣骑士取 10 + 10 + 10 = 30 分；数字有的写在名字前（10圣骑士…）有的写在后面（…鼻子10），
        每层按候选名依次尝试，全部加载失败则该层隐藏，避免出现破图。 */
@@ -1577,15 +1783,17 @@
       face:'圣骑士脸型',
       hair:'圣骑士发型',
       scores:{ face:10, eyes:10, nose:10 },
-      layers:['圣骑士脸型','圣骑士眼睛','圣骑士眉毛','圣骑士鼻子','圣骑士嘴','圣骑士发型','圣骑士发饰'],
+      layers:['圣骑士脸型','圣骑士眉毛','圣骑士鼻子','圣骑士嘴','圣骑士发型','圣骑士发饰'],
       fallbacks:{
         '圣骑士脸型':['10圣骑士脸型10','10圣骑士脸型','圣骑士脸型10','圣骑士脸型'],
-        '圣骑士眼睛':['10圣骑士眼睛10','10圣骑士眼睛','圣骑士眼睛10','圣骑士眼睛'],
+        /* 圣骑士库没有「眼睛」素材：眼睛统一由「眼眶 + 眼白 + 虹膜」三层整栈绘制，不参与五官候选名表 */
+        /* 眼眶文件名改过几轮（10圣骑士眼眶10 → 圣骑士眼眶10），这里按候选名依次兼容 */
+        '圣骑士眼眶':['圣骑士眼眶10','10圣骑士眼眶10','圣骑士眼眶'],
         '圣骑士鼻子':['圣骑士鼻子10','10圣骑士鼻子10','圣骑士鼻子']
       }
     };
-    /* 圣骑士库的「五官」层：血脉后代恒定使用（与圣女库同规则：脸/眼/眉/鼻/嘴 血脉一眼可辨） */
-    const PALADIN_FEATURE_FILES = { face:'圣骑士脸型', eyes:'圣骑士眼睛', brows:'圣骑士眉毛', nose:'圣骑士鼻子', mouth:'圣骑士嘴' };
+    /* 圣骑士库的「五官」层：血脉后代恒定使用（脸 / 眉 / 鼻 / 嘴；眼睛统一用「眼眶 + 眼白 + 虹膜」三层整栈，血脉一眼可辨） */
+    const PALADIN_FEATURE_FILES = { face:'圣骑士脸型', brows:'圣骑士眉毛', nose:'圣骑士鼻子', mouth:'圣骑士嘴' };
     /* 取该层实际存在的文件名（候选表第一项）：固定 NPC 整栈与血脉后代共用 */
     const paladinFile = name => ((paladinParts.fallbacks && paladinParts.fallbacks[name]) || [name])[0];
     /* 信徒的肤色明度：圣骑士本人与所有信徒后代统一为 +20 */
@@ -1593,8 +1801,9 @@
     /* —— 血脉五官（圣女库 / 圣骑士库通用规则）——
        默认恒定用专属库；但五官也会变异：变异时从「通用库 ∪ 专属库」里挑，
        所以有血脉性质的人比普通人多一个遗传库可选。 */
-    const SAINT_FEATURE_FILES = { face:'圣女脸', eyes:'圣女眼睛', brows:'圣女眉毛', nose:'圣女鼻子', mouth:'圣女嘴巴' };
-    const LINEAGE_FEATURE_KEYS = ['face','eyes','brows','nose','mouth'];
+    const SAINT_FEATURE_FILES = { face:'圣女脸', brows:'圣女眉毛', nose:'圣女鼻子', mouth:'圣女嘴巴' };
+    /* 眼睛不参与血脉抽签：眼睛永远是「眼眶 + 眼白 + 虹膜」三层整栈（圣女库/圣骑士库都没有单张眼睛素材） */
+    const LINEAGE_FEATURE_KEYS = ['face','brows','nose','mouth'];
     const LINEAGE_FEATURE_MUTATION_CHANCE = .35;
     function rollLineageFeaturePick(file,general){
       if(Math.random() < LINEAGE_FEATURE_MUTATION_CHANCE){
@@ -1607,8 +1816,8 @@
     function rollLineageFeaturePicks(kind){
       const picks = {};
       LINEAGE_FEATURE_KEYS.forEach(key=>{
-        /* 专属库要用「真实存在的文件名」：圣骑士库的脸/眼/鼻文件名带数字前缀或后缀（10圣骑士脸型10.png / 圣骑士鼻子10.png），
-           必须过 paladinFile() 映射，否则后代抽到专属库时会 404 丢五官（眉毛/嘴名字恰好一致，所以只有脸/眼/鼻会消失）。 */
+        /* 专属库要用「真实存在的文件名」：圣骑士库的脸/鼻文件名带数字前缀或后缀（10圣骑士脸型10.png / 圣骑士鼻子10.png），
+           必须过 paladinFile() 映射，否则后代抽到专属库时会 404 丢五官（眉毛/嘴名字恰好一致，所以只有脸/鼻会消失；眼睛不参与抽签）。 */
         const file = kind==='saint' ? SAINT_FEATURE_FILES[key] : paladinFile(PALADIN_FEATURE_FILES[key]);
         const source = kind==='saint' ? femaleParts : avatarParts;
         const general = source[key] ? { prefix:source[key].prefix, count:source[key].count } : null;
@@ -1626,7 +1835,10 @@
       const picks = getLineageFeaturePicks(kind,npc);
       const pick = picks && picks[key];
       if(pick) return pick.fromGeneral ? `${pick.file}.png` : `${parts.dir}/${pick.file}.png`;
-      return kind==='saint' ? `${saintParts.dir}/${SAINT_FEATURE_FILES[key]}.png` : `${paladinParts.dir}/${paladinFile(PALADIN_FEATURE_FILES[key])}.png`;
+      const file=(kind==='saint'?SAINT_FEATURE_FILES:PALADIN_FEATURE_FILES)[key];
+      /* 眼睛等「没有专属素材」的槽位返回 null，调用方退回通用素材，绝不拼出 undefined.png */
+      if(!file) return null;
+      return kind==='saint' ? `${saintParts.dir}/${file}.png` : `${paladinParts.dir}/${paladinFile(file)}.png`;
     }
     /* 颜值分：走圣骑士血脉库的人，专属库部件按 paladinParts.scores 计分（圣骑士库三件套各 10 分），
        变异成通用素材的部件按通用库编号计分 */
@@ -1646,8 +1858,10 @@
        改小这里会让血脉衰减更快（0.5 = 每代砍一半，几代就看不见了）。 */
     const TRAIT_HIDDEN_DISCOUNT=.8;
     const TRAIT_GENE_FLOOR=.05;   /* 保留常量备用：现在不再用它把低浓度特质隐藏/清零（哪怕稀释到极低也要显示并照常遗传） */
-    /* 浓度遗传：父母双方取平均；显性则把平均浓度原样留给下一代，隐性则打 TRAIT_HIDDEN_DISCOUNT 折 */
-    function inheritTraitGene(geneA,geneB) { const inherited=Math.max(0,(Number(geneA)||0)+(Number(geneB)||0))/2; const manifest=inherited>0&&Math.random()<inherited; return { manifest, stored: manifest?inherited:inherited*TRAIT_HIDDEN_DISCOUNT }; }
+    /* 浓度遗传：父母双方取平均；显性则把平均浓度原样留给下一代，隐性则打 TRAIT_HIDDEN_DISCOUNT 折。
+       唯一的例外是「必显」：父母任一方浓度达到 100%（=1）时，子一代必定显性遗传（浓度仍取双方平均，
+       所以 100% × 0% 的孩子是 50% 显性；隐性衰减规则不变）。 */
+    function inheritTraitGene(geneA,geneB) { const a=Math.max(0,Number(geneA)||0),b=Math.max(0,Number(geneB)||0); const inherited=(a+b)/2; const fullParent=a>=1||b>=1; const manifest=inherited>0&&(fullParent||Math.random()<inherited); return { manifest, stored: manifest?inherited:inherited*TRAIT_HIDDEN_DISCOUNT }; }
     const moleParts = { prefix:'配饰库痣', count:2 };
     const wrinkleParts = { prefix:'皱纹', count:4 };
     const usedChildNames = new Set();
@@ -1688,21 +1902,26 @@
       person._lastAgeMonthKey=key;
       return true;
     }
-    function makeNpc(gender,index) { const source=gender==='男'?avatarParts:femaleParts; const identity=generateUniqueLivingName(gender, [...game.npcs, ...(game.player ? [game.player] : [])]); const age=randomBetween(18,25); const birthYear=game.year-age; const birthMonth=randomBetween(1,12); const birthDay=randomBetween(1,28); const npc={id:index+1,gender,surname:identity.surname,name:identity.name,age,birthYear,birthMonth,birthDay,birthday:personBirthdayText({birthYear,birthMonth,birthDay}),district:randomItem(residentDistricts),marriagePreference:'family',married:false,spouseName:'',starred:false,affinity:0,lover:false,relations:{},npcDiary:[],pregnant:false,pregnancyMonths:0,miscarriageMonths:0,birthCount:0,children:[],alive:true,parentIds:[],eternalYouth:false,eternalYouthStrength:0,youthGeneStrength:0,royalAuthorityGene:0,wrinkles:randomWrinkles(),hairHue:randomBetween(-100,100),hairLightness:randomBetween(-200,200),hairSaturation:randomBetween(-100,100),skinLightness:randomBetween(-40,40),avatar:{},_lastAgeMonthKey:currentKey()}; Object.keys(source).forEach(key=>npc.avatar[key]=randomBetween(1,source[key].count)); return npc; }
+    function makeNpc(gender,index) { const source=gender==='男'?avatarParts:femaleParts; const identity=generateUniqueLivingName(gender, [...game.npcs, ...(game.player ? [game.player] : [])]); const age=randomBetween(18,25); const birthYear=game.year-age; const birthMonth=randomBetween(1,12); const birthDay=randomBetween(1,28); const npc={id:index+1,gender,surname:identity.surname,name:identity.name,age,birthYear,birthMonth,birthDay,birthday:personBirthdayText({birthYear,birthMonth,birthDay}),district:randomItem(residentDistricts),marriagePreference:'family',married:false,spouseName:'',starred:false,affinity:0,lover:false,relations:{},npcDiary:[],pregnant:false,pregnancyMonths:0,miscarriageMonths:0,birthCount:0,children:[],alive:true,parentIds:[],eternalYouth:false,eternalYouthStrength:0,youthGeneStrength:0,royalAuthorityGene:0,wrinkles:randomWrinkles(),hairHue:randomBetween(-100,100),hairLightness:randomBetween(-200,200),hairSaturation:randomBetween(-100,100),skinLightness:randomBetween(-40,40),eyeHue:randomBetween(-100,100),eyeLightness:randomBetween(-100,100),eyeSaturation:randomBetween(-100,100),avatar:{},_lastAgeMonthKey:currentKey()}; Object.keys(source).forEach(key=>npc.avatar[key]=randomBetween(1,source[key].count)); if(gender==='女'){ npc.avatar.eyes = randomBetween(1, femaleParts.eyes.count); npc.avatar.eyeWhite = 1; npc.avatar.eyeHue = npc.eyeHue; npc.avatar.eyeLightness = npc.eyeLightness; npc.avatar.eyeSaturation = npc.eyeSaturation; } return npc; }
     /* 固定 NPC：圣女（女 / 18 岁 / 6 月 11 日 / 用「圣女遗传库」整栈绘制 / 辖区离）
-       头发数据：色相 16、明度 150、彩度 -13（与创建界面「色相 / 明度 / 彩度」及 makeNpc 的字段顺序一致） */
+       头发数据：色相 16、明度 150、彩度 -13（与创建界面「色相 / 明度 / 彩度」及 makeNpc 的字段顺序一致）
+       虹膜遗传（眼睛颜色）：色相 -67、明度 84、彩度 -2；按「儿子随母亲、女儿随父亲」的规则传给后代，
+       眼睛本身始终是「眼眶 + 眼白 + 虹膜」三层整栈（圣女本人眼眶用 圣女遗传库/圣女眼眶.png）。
+       永葆青春浓度 100%（=1）：与任何配偶所生的孩子都是子一代，必定显性遗传。 */
     function makeSaintNpc() {
-      return { id:31, gender:'女', surname:'圣', name:'圣女', age:18, birthYear:82, birthMonth:6, birthDay:11, birthday:personBirthdayText({birthYear:82,birthMonth:6,birthDay:11}), district:'离', marriagePreference:'family', married:false, spouseName:'', starred:false, affinity:0, lover:false, relations:{}, npcDiary:[], pregnant:false, pregnancyMonths:0, miscarriageMonths:0, birthCount:0, children:[], alive:true, parentIds:[], eternalYouth:true, oracle:true, eternalYouthStrength:.7, youthGeneStrength:.7, wrinkles:[], hairHue:16, hairLightness:150, hairSaturation:-13, skinLightness:40, avatar:{saint:true}, saint:true, fixedNpc:true, _lastAgeMonthKey:currentKey() };
+      return { id:31, gender:'女', surname:'圣', name:'圣女', age:18, birthYear:82, birthMonth:6, birthDay:11, birthday:personBirthdayText({birthYear:82,birthMonth:6,birthDay:11}), district:'离', marriagePreference:'family', married:false, spouseName:'', starred:false, affinity:0, lover:false, relations:{}, npcDiary:[], pregnant:false, pregnancyMonths:0, miscarriageMonths:0, birthCount:0, children:[], alive:true, parentIds:[], eternalYouth:true, oracle:true, eternalYouthStrength:1, youthGeneStrength:1, wrinkles:[], hairHue:16, hairLightness:150, hairSaturation:-13, skinLightness:40, eyeHue:-67, eyeLightness:84, eyeSaturation:-2, avatar:{saint:true, eyes:1, eyeWhite:1, eyeHue:-67, eyeLightness:84, eyeSaturation:-2}, saint:true, fixedNpc:true, _lastAgeMonthKey:currentKey() };
     }
     /* 固定 NPC：圣骑士（男 / 17 岁 / 1 月 11 日 / 用「圣骑士遗传库」整栈绘制 / 辖区离）
        头发数据：色相 -96、明度 37、彩度 76（与创建界面「色相 / 明度 / 彩度」及 makeNpc 的字段顺序一致）
+       虹膜遗传（眼睛颜色）：色相 -22、明度 84、彩度 -2；按「儿子随母亲、女儿随父亲」的规则传给后代，
+       眼睛是「圣骑士眼眶(圣骑士眼眶10) + 通用眼白 + 通用虹膜」三层整栈，不占专用库五官层。
        颜值：素材是专用库，不走通用脸型/眼睛/鼻子编号，所以直接按 10+10+10=30 分给成品分（花美男）。
        注意不要写进 avatar.face/eyes/nose：那会让后代继承到超出通用素材编号上限（男脸型只有 8 张）的数值而破图。 */
     function makePaladinNpc() {
       const paladinAge=17;
       const birthYear=game.year-paladinAge;
       const paladinBeauty=Number(paladinParts.scores.face)+Number(paladinParts.scores.eyes)+Number(paladinParts.scores.nose);
-      return { id:32, gender:'男', surname:'圣', name:'圣骑士', age:paladinAge, birthYear, birthMonth:1, birthDay:11, birthday:personBirthdayText({birthYear,birthMonth:1,birthDay:11}), district:'离', beautyScore:paladinBeauty, marriagePreference:'family', married:false, spouseName:'', starred:false, affinity:0, lover:false, relations:{}, npcDiary:[], pregnant:false, pregnancyMonths:0, miscarriageMonths:0, birthCount:0, children:[], alive:true, parentIds:[], eternalYouth:false, eternalYouthStrength:0, youthGeneStrength:0, royalAuthorityGene:0, wrinkles:[], hairHue:-96, hairLightness:37, hairSaturation:76, skinLightness:BELIEVER_SKIN_LIGHTNESS, avatar:{paladin:true}, paladin:true, believer:true, fixedNpc:true, _lastAgeMonthKey:currentKey() };
+      return { id:32, gender:'男', surname:'圣', name:'圣骑士', age:paladinAge, birthYear, birthMonth:1, birthDay:11, birthday:personBirthdayText({birthYear,birthMonth:1,birthDay:11}), district:'离', beautyScore:paladinBeauty, marriagePreference:'family', married:false, spouseName:'', starred:false, affinity:0, lover:false, relations:{}, npcDiary:[], pregnant:false, pregnancyMonths:0, miscarriageMonths:0, birthCount:0, children:[], alive:true, parentIds:[], eternalYouth:false, eternalYouthStrength:0, youthGeneStrength:0, royalAuthorityGene:0, wrinkles:[], hairHue:-96, hairLightness:37, hairSaturation:76, skinLightness:BELIEVER_SKIN_LIGHTNESS, eyeHue:-22, eyeLightness:84, eyeSaturation:-2, avatar:{paladin:true, eyeHue:-22, eyeLightness:84, eyeSaturation:-2}, paladin:true, believer:true, fixedNpc:true, _lastAgeMonthKey:currentKey() };
     }
     /* 每个区（中宫除外）生成 3~4 名居民：区内男女尽量各半，且全局男女数量完全相等。
        固定 NPC（圣女 / 圣骑士）不占这个名额，仍按各自设定落在「离」。 */
@@ -1721,6 +1940,7 @@
         for(let index=slice.length-1;index>0;index--){const swap=randomBetween(0,index);[slice[index],slice[swap]]=[slice[swap],slice[index]];}
         slice.forEach(gender=>{game.npcs.push(Object.assign(makeNpc(gender,game.npcs.length),{district}));});
       });
+      normalizeBelieverTraits();
       return game.npcs;
     }
     function makeChildNpc(mother,father,childGender) { const source=childGender==='男'?avatarParts:femaleParts; const surname=(father&&father.name?father.name.charAt(0):mother.name.charAt(0)); const parentStrength=Math.max(mother.eternalYouthStrength||0,father&&father.eternalYouthStrength||0); const inheritedYouth=parentStrength>0&&Math.random()<parentStrength*.7;
@@ -1728,8 +1948,10 @@
       const geneticFather = father && father.gender === '男' ? father : mother && mother.gender === '男' ? mother : father || mother;
       const inheritedHairParent = childGender === '男' ? geneticMother : geneticFather || geneticMother;
       const inheritedSkinParent = childGender === '男' ? geneticMother : geneticFather || geneticMother;
+      /* 虹膜色彩（色相 / 明度 / 彩度）与发色 / 肤色同一套规则：儿子随母亲、女儿随父亲 */
+      const inheritedEyeParent = childGender === '男' ? geneticMother : geneticFather || geneticMother;
       const birthDay=randomBetween(1,28);
-      const child={id:`child-${Date.now()}-${Math.random()}`,gender:childGender,name:`${surname}${randomItem(childGivenNames)}`,age:0,birthYear:game.year,birthMonth:game.month,birthDay,birthday:personBirthdayText({birthYear:game.year,birthMonth:game.month,birthDay}),married:false,spouseName:'',starred:false,affinity:0,lover:false,relations:{},npcDiary:[],pregnant:false,pregnancyMonths:0,birthCount:0,children:[],alive:true,parentIds:[mother.id,father&&father.id].filter(Boolean),fatherUnknown:!father,motherId:mother.id,illegitimate:!father,eternalYouth:inheritedYouth,eternalYouthStrength:inheritedYouth?parentStrength*.7:0,wrinkles:randomWrinkles(),hairHue:inheritedHairParent.hairHue ?? inheritTrait(mother,father,'hairHue',0,-100,100),hairLightness:inheritedHairParent.hairLightness ?? inheritTrait(mother,father,'hairLightness',0,-200,200),hairSaturation:inheritedHairParent.hairSaturation ?? inheritTrait(mother,father,'hairSaturation',0,-100,100),skinLightness:inheritedSkinParent.skinLightness ?? inheritTrait(mother,father,'skinLightness',0,-40,40),avatar:{},_lastAgeMonthKey:currentKey()}; const faceSource=childGender==='女'?femaleParts:avatarParts; const faceParent=childGender==='女'?geneticMother:geneticFather; const mutableFeatures=[]; while(mutableFeatures.length<randomBetween(1,2)){const key=randomItem(['face','eyes','brows','nose','mouth']);if(!mutableFeatures.includes(key))mutableFeatures.push(key);} ['face','eyes','brows','nose','mouth'].forEach(key=>{const inherited=faceParent&&faceParent.avatar&&faceParent.avatar[key];child.avatar[key]=mutableFeatures.includes(key)?randomBetween(1,faceSource[key].count):(inherited||randomBetween(1,faceSource[key].count));}); child.avatar.hair=randomBetween(1,source.hair.count); return child; }
+      const child={id:`child-${Date.now()}-${Math.random()}`,gender:childGender,name:`${surname}${randomItem(childGivenNames)}`,age:0,birthYear:game.year,birthMonth:game.month,birthDay,birthday:personBirthdayText({birthYear:game.year,birthMonth:game.month,birthDay}),married:false,spouseName:'',starred:false,affinity:0,lover:false,relations:{},npcDiary:[],pregnant:false,pregnancyMonths:0,birthCount:0,children:[],alive:true,parentIds:[mother.id,father&&father.id].filter(Boolean),fatherUnknown:!father,motherId:mother.id,illegitimate:!father,eternalYouth:inheritedYouth,eternalYouthStrength:inheritedYouth?parentStrength*.7:0,wrinkles:randomWrinkles(),hairHue:inheritedHairParent.hairHue ?? inheritTrait(mother,father,'hairHue',0,-100,100),hairLightness:inheritedHairParent.hairLightness ?? inheritTrait(mother,father,'hairLightness',0,-200,200),hairSaturation:inheritedHairParent.hairSaturation ?? inheritTrait(mother,father,'hairSaturation',0,-100,100),skinLightness:inheritedSkinParent.skinLightness ?? inheritTrait(mother,father,'skinLightness',0,-40,40),eyeHue:inheritedEyeParent?.eyeHue ?? inheritedEyeParent?.avatar?.eyeHue ?? inheritTrait(mother,father,'eyeHue',0,-100,100),eyeLightness:inheritedEyeParent?.eyeLightness ?? inheritedEyeParent?.avatar?.eyeLightness ?? inheritTrait(mother,father,'eyeLightness',0,-100,100),eyeSaturation:inheritedEyeParent?.eyeSaturation ?? inheritedEyeParent?.avatar?.eyeSaturation ?? inheritTrait(mother,father,'eyeSaturation',0,-100,100),avatar:{},_lastAgeMonthKey:currentKey()}; const faceSource=childGender==='女'?femaleParts:avatarParts; const faceParent=childGender==='女'?geneticMother:geneticFather; const mutableFeatures=[]; while(mutableFeatures.length<randomBetween(1,2)){const key=randomItem(['face','eyes','brows','nose','mouth']);if(!mutableFeatures.includes(key))mutableFeatures.push(key);} /* 五官（脸型 / 眼眶 / 眉毛 / 鼻子 / 嘴）走同一套遗传规律：随机 1~2 项变异，其余继承「脸型来源父母」；眼眶（avatar.eyes）就是五官之一。眼睛颜色不在这里，它由虹膜三值（eyeHue / eyeLightness / eyeSaturation）单独遗传。 */ ['face','eyes','brows','nose','mouth'].forEach(key=>{const cap=Math.max(1,Number(faceSource[key].count)||1);const raw=Number(faceParent&&faceParent.avatar?faceParent.avatar[key]:NaN);/* 跨性别继承会越界（男素材上限更大：脸型 8 / 眼眶 7 / 眉毛 8），必须夹进孩子自己素材的编号上限，否则会拼出不存在的文件（碎图） */const inherited=Number.isFinite(raw)&&raw>=1?Math.min(Math.round(raw),cap):0;child.avatar[key]=mutableFeatures.includes(key)?randomBetween(1,cap):(inherited||randomBetween(1,cap));}); if(childGender==='女'){ child.eyeHue = Number(child.eyeHue ?? randomBetween(-100,100)); child.avatar.eyeHue = child.eyeHue; child.avatar.eyeLightness = Number(child.eyeLightness||0); child.avatar.eyeSaturation = Number(child.eyeSaturation||0); child.avatar.eyeWhite = 1; child.avatar.eyes = Math.min(femaleParts.eyes.count,Math.max(1,Number(child.avatar.eyes)||randomBetween(1,femaleParts.eyes.count))); } child.avatar.hair=randomBetween(1,source.hair.count); return child; }
     function currentKey(year=game.year,month=game.month) { return `${year}-${month}`; }
     function dateText(year=game.year,month=game.month) { return `${year} 年 ${month} 月`; }
     function monthIndex(year=game.year,month=game.month) { return Number(year)*12+Number(month); }
@@ -1991,11 +2213,71 @@
       return person.npcDiary.filter(entry=>entry.year===year&&entry.month===month);
     }
     function attachAvatarStar(avatar,npc) { if(!npc||npc.unknownParent||avatar.querySelector('.star'))return; const isPlayerAvatar = !!(game.player && String(npc.id) === String(game.player.id)); if(isPlayerAvatar) return; const star=document.createElement('button');star.className=`star ${npc.starred?'on':''}`;star.textContent='★';star.title=npc.starred?'取消星标':'标记联系人';star.addEventListener('click',event=>{event.stopPropagation();npc.starred=!npc.starred;document.querySelectorAll(`.npc-avatar[data-star-person="${String(npc.id)}"] .star`).forEach(button=>button.classList.toggle('on',npc.starred));star.title=npc.starred?'取消星标':'标记联系人';renderAll();});avatar.dataset.starPerson=String(npc.id);avatar.appendChild(star); }
-    function createAvatar(npc,small=false) { const source=npc.gender==='男'?avatarParts:femaleParts; const wrap=document.createElement('div'); const isAlive = npc.alive !== false; wrap.className=`npc-avatar${npc.alive===false?' dead':''}${isAlive && npc.gender==='男' ? ' male' : isAlive && npc.gender==='女' ? ' female' : ''}`; if(!small) wrap.title='查看族谱'; const hairHue=npc.hairHue||0; const hairLightness=npc.hairLightness||0; const hairSaturation=npc.hairSaturation||0; const skinLightness=npc.skinLightness||0; const isPlayerAvatar = !!(game.player && String(npc.id) === String(game.player.id)); if(npc.age<=15){const baby=document.createElement('img');baby.src=npc.gender==='男'?'男婴儿.png':'女婴儿.png';baby.alt='婴儿头像';baby.style.filter=`brightness(${100+skinLightness/2}%)`;wrap.appendChild(baby);if(!isPlayerAvatar) attachAvatarStar(wrap,npc);return wrap;} if(npc.avatar&&(npc.avatar.saint||npc.avatar.saintFull)){saintParts.layers.forEach(file=>{const saintLayer=document.createElement('img');saintLayer.src=`${saintParts.dir}/${file}.png`;saintLayer.alt='';if(file==='圣女脸')saintLayer.style.filter=`brightness(${100+skinLightness/2}%)`;if(file==='圣女发型')saintLayer.style.filter=`sepia(${Math.max(0,35+hairSaturation*.65)}%) saturate(${Math.max(0,160+hairSaturation*2.4)}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLightness/2}%)`;wrap.appendChild(saintLayer);});if(!isPlayerAvatar)attachAvatarStar(wrap,npc);return wrap;} if(npc.avatar&&npc.avatar.paladin){const paladinSkinFilter=`brightness(${100+skinLightness/2}%)`;const paladinHairFilter=`sepia(${Math.max(0,35+hairSaturation*.65)}%) saturate(${Math.max(0,160+hairSaturation*2.4)}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLightness/2}%)`;paladinParts.layers.forEach(file=>{const candidates=(paladinParts.fallbacks&&paladinParts.fallbacks[file])||[file];const paladinLayer=document.createElement('img');paladinLayer.alt='';let candidateStep=0;paladinLayer.onerror=()=>{candidateStep++;if(candidateStep<candidates.length)paladinLayer.src=`${paladinParts.dir}/${candidates[candidateStep]}.png`;else paladinLayer.style.display='none';};paladinLayer.src=`${paladinParts.dir}/${candidates[0]}.png`;if(file===paladinParts.face)paladinLayer.style.filter=paladinSkinFilter;if(file===paladinParts.hair)paladinLayer.style.filter=paladinHairFilter;wrap.appendChild(paladinLayer);});if(!isPlayerAvatar)attachAvatarStar(wrap,npc);return wrap;} const saintFeatureFiles={face:'圣女脸',eyes:'圣女眼睛',brows:'圣女眉毛',nose:'圣女鼻子',mouth:'圣女嘴巴',hair:'圣女发型'}; const useSaintFeatures=!!(npc.avatar&&npc.avatar.saintFeatures)&&npc.gender==='女'; const usePaladinFeatures=!!(npc.avatar&&npc.avatar.paladinFeatures)&&npc.gender==='男'&&!npc.avatar.paladin; ['face','eyes','brows','nose','mouth'].forEach(key=>{ const img=document.createElement('img'); const generalSrc=`${source[key].prefix}${npc.avatar[key]}.png`; img.src=useSaintFeatures?lineageFeatureSrc('saint',key,npc):usePaladinFeatures?lineageFeatureSrc('paladin',key,npc):generalSrc; /* 兜底：血脉素材万一缺失（命名变动/旧存档），退回通用素材，绝不留下空洞 */ if(useSaintFeatures||usePaladinFeatures){const fallbackIndex=Math.max(1,Math.min(Number(source[key].count)||1,Number(npc.avatar[key])||1));img.onerror=()=>{img.onerror=null;img.src=`${source[key].prefix}${fallbackIndex}.png`;};} img.alt='';img.dataset.avatarLayer=key;if(key==='face')img.style.filter=`brightness(${100+skinLightness/2}%)`;wrap.appendChild(img); }); if(npc.gender==='女'&&npc.avatar.mole){const mole=document.createElement('img');mole.src=`${femaleParts.mole.prefix}${npc.avatar.mole}.png`;mole.alt='';wrap.appendChild(mole);} if(npc.age>=53&&!npc.eternalYouth){const wrinkles=Array.isArray(npc.wrinkles)&&npc.wrinkles.length?npc.wrinkles:randomWrinkles(); if(!Array.isArray(npc.wrinkles)||!npc.wrinkles.length) npc.wrinkles=wrinkles; wrinkles.forEach(index=>{const wrinkle=document.createElement('img');wrinkle.src=`${wrinkleParts.prefix}${index}.png`;wrinkle.alt='皱纹';wrap.appendChild(wrinkle);});} const lineageHairEntry=(npc.avatar&&Array.isArray(npc.avatar.saintLineage)?npc.avatar.saintLineage:[]).find(entry=>entry&&entry.slot==='hair'); const paladinHairEntry=(npc.avatar&&Array.isArray(npc.avatar.paladinLineage)?npc.avatar.paladinLineage:[]).find(entry=>entry&&entry.slot==='hair'); const hair=document.createElement('img');hair.src=lineageHairEntry?(lineageHairEntry.fromGeneral?`${lineageHairEntry.file}.png`:`${saintParts.dir}/${lineageHairEntry.file}.png`):paladinHairEntry?(paladinHairEntry.fromGeneral?`${paladinHairEntry.file}.png`:`${paladinParts.dir}/${paladinHairEntry.file}.png`):`${source.hair.prefix}${npc.avatar.hair}.png`;hair.alt='';hair.style.filter=`sepia(${Math.max(0,35+hairSaturation*.65)}%) saturate(${Math.max(0,160+hairSaturation*2.4)}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLightness/2}%)`;wrap.appendChild(hair);if(!isPlayerAvatar) attachAvatarStar(wrap,npc);return wrap; }
-    function renderNpcRow(npc) { const row=document.createElement('div'); row.className='npc-row'; row.dataset.id=npc.id; const avatar=createAvatar(npc); avatar.addEventListener('click',()=>openGenealogy(npc)); const star=document.createElement('button'); star.className=`star ${npc.starred?'on':''}`; star.textContent='★'; star.title=npc.starred?'取消星标':'标记联系人'; star.addEventListener('click',event=>{event.stopPropagation(); npc.starred=!npc.starred; renderAll();}); avatar.appendChild(star); const main=document.createElement('div'); main.className='npc-main'; const relationship=npc.lover?'恋人':npc.affinity; const status=npc.alive?`${npc.age}岁 · ${npc.married?'已婚':'单身'}`:'已故'; const canChat=Number(npc.age)>0; const canFlirt=npc.gender==='女'&&Number(npc.age)>=18; const isPlayerSpouse = !!(game.player && String(game.player.spouseId) === String(npc.id)); const canPropose = !!(game.player && Number(game.player.age) >= 18 && npc.gender === '女' && Number(npc.age) >= 18 && npc.alive && npc.affinity >= 70 && !(game.player.married && String(game.player.spouseId) !== String(npc.id)) && !(npc.married && String(npc.spouseId) !== String(game.player.id)) && !isPlayerSpouse); const canDivorce = !!(game.player && isPlayerSpouse && game.player.married); const actions=npc.alive?`${canChat?'<button data-action="chat">聊天 -1</button>':''}${canFlirt?'<button data-action="flirt">调情 -2</button>':''}${canPlayerIntimateWith(npc)?'<button data-action="intimate">亲热 -2</button>':''}${canPropose?'<button data-action="propose">求婚 -2</button>':''}${canDivorce?'<button data-action="divorce">离婚 -2</button>':''}${!canChat?'<span class="npc-meta">婴儿无法互动</span>':''}`:'<span class="npc-meta">无法互动</span>'; main.innerHTML=`<div class="npc-name-line"><span class="npc-name">${npc.name}</span><span class="npc-meta">${status}</span></div><div class="relationship"><i style="width:${npc.affinity}%"></i></div><div class="npc-meta">好感度 ${relationship}</div><div class="npc-actions">${actions}</div>`; main.querySelectorAll('button').forEach(button=>{ const action=button.dataset.action; const cost=action==='chat'?1:2; button.disabled=game.points<cost; }); row.append(avatar,main); return row; }
-    function renderNpcList() { const list=document.getElementById('npcList'); list.innerHTML=''; const residents=game.npcs.filter(npc=>npc.alive&&(npc.district||'中宫')===game.activeDistrict).sort((first,second)=>(second.fixedNpc?1:0)-(first.fixedNpc?1:0)); document.getElementById('groupCount').textContent=`${residents.length} 人 · ${residents.filter(npc=>npc.gender==='男').length} 男 / ${residents.filter(npc=>npc.gender==='女').length} 女`; residents.forEach(npc=>list.appendChild(renderNpcRow(npc))); }
+    function createAvatar(npc,small=false) { const source=npc.gender==='男'?avatarParts:femaleParts; const wrap=document.createElement('div'); const isAlive = npc.alive !== false; wrap.className=`npc-avatar${npc.alive===false?' dead':''}${isAlive && npc.gender==='男' ? ' male' : isAlive && npc.gender==='女' ? ' female' : ''}`; if(!small) wrap.title='查看族谱'; const hairHue=npc.hairHue||0; const hairLightness=npc.hairLightness||0; const hairSaturation=npc.hairSaturation||0; const skinLightness=npc.skinLightness||0; const eyeHue=Number(npc.eyeHue ?? npc.avatar?.eyeHue ?? 0); const isPlayerAvatar = !!(game.player && String(npc.id) === String(game.player.id)); if(npc.age<=15){const baby=document.createElement('img');baby.src=npc.gender==='男'?'男婴儿.png':'女婴儿.png';baby.alt='婴儿头像';baby.style.filter=`brightness(${100+skinLightness/2}%)`;wrap.appendChild(baby);if(!isPlayerAvatar) attachAvatarStar(wrap,npc);return wrap;} if(npc.avatar&&(npc.avatar.saint||npc.avatar.saintFull)){saintParts.layers.forEach(file=>{const saintLayer=document.createElement('img');saintLayer.src=file.startsWith('女通用眼睛/')?file:`${saintParts.dir}/${file}.png`;saintLayer.alt='';if(file==='圣女脸')saintLayer.style.filter=`brightness(${100+skinLightness/2}%)`;if(file==='圣女发型')saintLayer.style.filter=`sepia(${Math.max(0,35+hairSaturation*.65)}%) saturate(${Math.max(0,160+hairSaturation*2.4)}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLightness/2}%)`;if(file==='圣女眼眶')saintLayer.style.filter=`brightness(${100+skinLightness/2}%)`;if(file.endsWith('女虹膜.png'))saintLayer.style.filter=`hue-rotate(${eyeHue*2.4}deg) saturate(1.3) brightness(${100+skinLightness/2}%)`;wrap.appendChild(saintLayer);});if(!isPlayerAvatar)attachAvatarStar(wrap,npc);return wrap;} if(npc.gender==='女' && !(npc.avatar&&npc.avatar.paladin) && !(npc.avatar&&npc.avatar.saint) && !(npc.avatar&&npc.avatar.saintFull)){ const [irisLayer, whiteLayer, orbitLayer] = makeFemaleEyeLayerStack({ orbit:Number(npc.avatar?.eyes ?? 1), white:Number(npc.avatar?.eyeWhite ?? 1), hue:eyeHue, skinLightness }); orbitLayer.dataset.eyeLayer='orbit'; whiteLayer.dataset.eyeLayer='white'; irisLayer.dataset.eyeLayer='iris'; wrap.appendChild(orbitLayer); wrap.appendChild(whiteLayer); wrap.appendChild(irisLayer); if(!isPlayerAvatar)attachAvatarStar(wrap,npc); return wrap; } if(npc.avatar&&npc.avatar.paladin){const paladinSkinFilter=`brightness(${100+skinLightness/2}%)`;const paladinHairFilter=`sepia(${Math.max(0,35+hairSaturation*.65)}%) saturate(${Math.max(0,160+hairSaturation*2.4)}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLightness/2}%)`;paladinParts.layers.forEach(file=>{const candidates=(paladinParts.fallbacks&&paladinParts.fallbacks[file])||[file];const paladinLayer=document.createElement('img');paladinLayer.alt='';let candidateStep=0;paladinLayer.onerror=()=>{candidateStep++;if(candidateStep<candidates.length)paladinLayer.src=`${paladinParts.dir}/${candidates[candidateStep]}.png`;else paladinLayer.style.display='none';};paladinLayer.src=`${paladinParts.dir}/${candidates[0]}.png`;if(file===paladinParts.face)paladinLayer.style.filter=paladinSkinFilter;if(file===paladinParts.hair)paladinLayer.style.filter=paladinHairFilter;wrap.appendChild(paladinLayer);});if(!isPlayerAvatar)attachAvatarStar(wrap,npc);return wrap;} const useSaintFeatures=!!(npc.avatar&&npc.avatar.saintFeatures)&&npc.gender==='女'; const usePaladinFeatures=!!(npc.avatar&&npc.avatar.paladinFeatures)&&npc.gender==='男'&&!npc.avatar.paladin; ['face','brows','nose','mouth'].forEach(key=>{ const img=document.createElement('img'); const generalSrc=`${source[key].prefix}${npc.avatar[key]}.png`; img.src=(useSaintFeatures?lineageFeatureSrc('saint',key,npc):usePaladinFeatures?lineageFeatureSrc('paladin',key,npc):null)||generalSrc; /* 兜底：血脉素材万一缺失（命名变动/旧存档），退回通用素材，绝不留下空洞 */ if(useSaintFeatures||usePaladinFeatures){const fallbackIndex=Math.max(1,Math.min(Number(source[key].count)||1,Number(npc.avatar[key])||1));img.onerror=()=>{img.onerror=null;img.src=`${source[key].prefix}${fallbackIndex}.png`;};} img.alt='';img.dataset.avatarLayer=key;if(key==='face')img.style.filter=`brightness(${100+skinLightness/2}%)`;wrap.appendChild(img); }); if(npc.gender==='女'&&npc.avatar.mole){const mole=document.createElement('img');mole.src=`${femaleParts.mole.prefix}${npc.avatar.mole}.png`;mole.alt='';wrap.appendChild(mole);} if(npc.age>=51&&!npc.eternalYouth){const wrinkles=Array.isArray(npc.wrinkles)&&npc.wrinkles.length?npc.wrinkles:randomWrinkles(); if(!Array.isArray(npc.wrinkles)||!npc.wrinkles.length) npc.wrinkles=wrinkles; wrinkles.forEach(index=>{const wrinkle=document.createElement('img');wrinkle.src=`${wrinkleParts.prefix}${index}.png`;wrinkle.alt='皱纹';wrap.appendChild(wrinkle);});} const lineageHairEntry=(npc.avatar&&Array.isArray(npc.avatar.saintLineage)?npc.avatar.saintLineage:[]).find(entry=>entry&&entry.slot==='hair'); const paladinHairEntry=(npc.avatar&&Array.isArray(npc.avatar.paladinLineage)?npc.avatar.paladinLineage:[]).find(entry=>entry&&entry.slot==='hair'); const hair=document.createElement('img');hair.src=lineageHairEntry?(lineageHairEntry.fromGeneral?`${lineageHairEntry.file}.png`:`${saintParts.dir}/${lineageHairEntry.file}.png`):paladinHairEntry?(paladinHairEntry.fromGeneral?`${paladinHairEntry.file}.png`:`${paladinParts.dir}/${paladinHairEntry.file}.png`):`${source.hair.prefix}${npc.avatar.hair}.png`;hair.alt='';hair.style.filter=`sepia(${Math.max(0,35+hairSaturation*.65)}%) saturate(${Math.max(0,160+hairSaturation*2.4)}%) hue-rotate(${hairHue*2.4}deg) brightness(${100+hairLightness/2}%)`;wrap.appendChild(hair);if(!isPlayerAvatar) attachAvatarStar(wrap,npc);return wrap; }
+    function renderNpcRow(npc) { const row=document.createElement('div'); row.className='npc-row'; row.dataset.id=npc.id; const avatar=createAvatar(npc); avatar.addEventListener('click',()=>openGenealogy(npc)); const star=document.createElement('button'); star.className=`star ${npc.starred?'on':''}`; star.textContent='★'; star.title=npc.starred?'取消星标':'标记联系人'; star.addEventListener('click',event=>{event.stopPropagation(); npc.starred=!npc.starred; renderAll();}); avatar.appendChild(star); const main=document.createElement('div'); main.className='npc-main'; const relationship=npc.lover?'恋人':npc.affinity; const status=npc.alive?`${npc.age}岁 · ${npc.married?'已婚':'单身'}`:'已故'; const canChat=Number(npc.age)>0; const canFlirt=npc.gender==='女'&&Number(npc.age)>=18&&Number(game.player?.age||0)>=18; const isPlayerSpouse = !!(game.player && String(game.player.spouseId) === String(npc.id)); const canPropose = !!(game.player && Number(game.player.age) >= 18 && npc.gender === '女' && Number(npc.age) >= 18 && npc.alive && npc.affinity >= 70 && !(game.player.married && String(game.player.spouseId) !== String(npc.id)) && !(npc.married && String(npc.spouseId) !== String(game.player.id)) && !isPlayerSpouse); const canDivorce = !!(game.player && isPlayerSpouse && game.player.married); const actions=npc.alive?`${canChat?'<button data-action="chat">聊天 -1</button>':''}${canFlirt?'<button data-action="flirt">调情 -2</button>':''}${canPlayerIntimateWith(npc)?'<button data-action="intimate">亲热 -2</button>':''}${canPropose?'<button data-action="propose">求婚 -2</button>':''}${canDivorce?'<button data-action="divorce">离婚 -2</button>':''}${!canChat?'<span class="npc-meta">婴儿无法互动</span>':''}`:'<span class="npc-meta">无法互动</span>'; main.innerHTML=`<div class="npc-name-line"><span class="npc-name">${npc.name}</span><span class="npc-meta">${status}</span></div><div class="relationship"><i style="width:${npc.affinity}%"></i></div><div class="npc-meta">好感度 ${relationship}</div><div class="npc-actions">${actions}</div>`; main.querySelectorAll('button').forEach(button=>{ const action=button.dataset.action; const cost=action==='chat'?1:2; button.disabled=game.points<cost; }); row.append(avatar,main); return row; }
+    /* 业主群列表每页只渲染 4 人：人一多时 DOM 行数（每行一个人像 + 若干按钮）以及各 renderAll 包裹层的
+       「行 × 全体人数」扫描都会被放大，这是界面卡顿的主因。其余居民靠标题右侧「刷新」按钮分批翻看。 */
+    const RESIDENTS_PER_PAGE=4;
+    function getDistrictResidents(){ return game.npcs.filter(npc=>npc.alive&&String(npc.id)!=='player'&&(npc.district||'中宫')===(game.activeDistrict||'中宫')); }
+    function getResidentPage(residents){ if(!game.districtPage)game.districtPage={}; const district=game.activeDistrict||'中宫'; const pageCount=Math.max(1,Math.ceil(residents.length/RESIDENTS_PER_PAGE)); const page=((Number(game.districtPage[district])||0)%pageCount+pageCount)%pageCount; game.districtPage[district]=page; return { page, pageCount, rows:residents.slice(page*RESIDENTS_PER_PAGE,page*RESIDENTS_PER_PAGE+RESIDENTS_PER_PAGE) }; }
+    function updateGroupCountText(){ const label=document.getElementById('groupCount'); if(!label)return; const residents=getDistrictResidents(); const state=getResidentPage(residents); const male=residents.filter(npc=>npc.gender==='男').length; const cityAlive=game.npcs.filter(npc=>npc.alive&&String(npc.id)!=='player').length; label.textContent=`本区 ${residents.length} 人（${male} 男 / ${residents.length-male} 女）· 第 ${state.page+1}/${state.pageCount} 批 · 显示 ${state.rows.length} 人 · 全城 ${cityAlive} 人`; }
+    function renderNpcList() { const list=document.getElementById('npcList'); if(!list)return; list.innerHTML=''; const residents=getDistrictResidents().sort((first,second)=>(second.fixedNpc?1:0)-(first.fixedNpc?1:0)); getResidentPage(residents).rows.forEach(npc=>list.appendChild(renderNpcRow(npc))); updateGroupCountText(); }
+    const refreshResidentsButton=document.getElementById('refreshResidents');
+    if(refreshResidentsButton)refreshResidentsButton.addEventListener('click',()=>{ const residents=getDistrictResidents(); const district=game.activeDistrict||'中宫'; if(!game.districtPage)game.districtPage={}; const pageCount=Math.max(1,Math.ceil(residents.length/RESIDENTS_PER_PAGE)); game.districtPage[district]=((Number(game.districtPage[district])||0)+1)%pageCount; renderAll(); });
     function renderContacts() { const list=document.getElementById('contactList'); list.innerHTML=''; const contacts=game.npcs.filter(npc=>npc.starred).sort((first,second)=>(second.fixedNpc?1:0)-(first.fixedNpc?1:0)); if(!contacts.length){list.innerHTML='<p class="contact-empty">还没有星标联系人。去业主群里点亮某个人头像旁的星星吧。</p>';return;} contacts.forEach(npc=>{const row=renderNpcRow(npc);const districtMeta=document.createElement('div');districtMeta.className='npc-meta contact-district';districtMeta.textContent=`辖区：${npc.district||'中宫'}`;row.querySelector('.npc-main')?.appendChild(districtMeta);list.appendChild(row);}); }
     function escapeDiaryText(text) { return String(text).replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character])); }
+    const baseCreateAvatar=createAvatar;
+    createAvatar=function(npc,small=false){
+      const avatar=baseCreateAvatar(npc,small);
+      if(npc.gender==='男'&&npc.age>15&&(npc.avatar?.paladin||npc.avatar?.paladinFeatures)){
+        const [paladinIris,paladinWhite,paladinOrbit]=makeMaleEyeLayerStack({orbit:1,hue:Number(npc.eyeHue??npc.avatar?.eyeHue??0),lightness:Number(npc.eyeLightness??npc.avatar?.eyeLightness??0),saturation:Number(npc.eyeSaturation??npc.avatar?.eyeSaturation??0)});
+        const paladinOrbitCandidates=(paladinParts.fallbacks&&paladinParts.fallbacks['圣骑士眼眶'])||['圣骑士眼眶10'];
+        let paladinOrbitStep=0;
+        /* 眼眶文件名改过几轮，按候选名依次尝试；全失败再退回通用男眼眶，绝不留下碎图 */
+        paladinOrbit.onerror=()=>{paladinOrbitStep++;if(paladinOrbitStep<paladinOrbitCandidates.length)paladinOrbit.src=`${paladinParts.dir}/${paladinOrbitCandidates[paladinOrbitStep]}.png`;else paladinOrbit.src=`男通用眼睛/${maleEyeOrbitFiles[0]}`;};
+        paladinOrbit.src=lineageFeatureSrc('paladin','eyes',npc)||`${paladinParts.dir}/${paladinOrbitCandidates[0]}.png`;
+        paladinOrbit.style.filter='none';
+        paladinOrbit.dataset.eyeLayer='orbit';
+        paladinWhite.dataset.eyeLayer='white';
+        paladinIris.dataset.eyeLayer='iris';
+        [paladinWhite,paladinIris,paladinOrbit].forEach(layer=>{layer.style.zIndex='1';});
+        const paladinHair=avatar.querySelector('img[src*="圣骑士发型"]');
+        [paladinWhite,paladinIris,paladinOrbit].forEach(layer=>paladinHair?avatar.insertBefore(layer,paladinHair):avatar.appendChild(layer));
+      }
+      if(npc.gender==='男'&&npc.age>15&&!(npc.avatar&&npc.avatar.paladin)&&!(npc.avatar&&npc.avatar.paladinFeatures)){
+        const [maleIris,maleWhite,maleOrbit]=makeMaleEyeLayerStack({orbit:Number(npc.avatar?.eyes??1),hue:Number(npc.eyeHue??npc.avatar?.eyeHue??0),lightness:Number(npc.eyeLightness??npc.avatar?.eyeLightness??0),saturation:Number(npc.eyeSaturation??npc.avatar?.eyeSaturation??0)});
+        maleOrbit.dataset.eyeLayer='orbit';
+        maleWhite.dataset.eyeLayer='white';
+        maleIris.dataset.eyeLayer='iris';
+        const brows=avatar.querySelector('img[src*="男的眉毛"]');
+        [maleOrbit,maleIris,maleWhite].forEach(layer=>brows?avatar.insertBefore(layer,brows):avatar.appendChild(layer));
+      }
+      if(npc.avatar&&(npc.avatar.saint||npc.avatar.saintFull)){
+        const [irisLayer,whiteLayer,orbitLayer]=makeFemaleEyeLayerStack({orbit:1,hue:Number(npc.eyeHue ?? npc.avatar?.eyeHue ?? 0),lightness:Number(npc.eyeLightness ?? npc.avatar?.eyeLightness ?? 0),saturation:Number(npc.eyeSaturation ?? npc.avatar?.eyeSaturation ?? 0),skinLightness:0});
+        orbitLayer.src='圣女遗传库/圣女眼眶.png';
+        orbitLayer.style.filter=`brightness(${100+(npc.skinLightness||0)/2}%)`;
+        [whiteLayer,irisLayer,orbitLayer].forEach(layer=>{layer.style.zIndex='1';});
+        avatar.querySelectorAll('img').forEach(image=>{if((image.getAttribute('src')||'').includes('圣女发型')||(image.getAttribute('src')||'').includes('圣女发饰'))image.style.zIndex='3';});
+        const saintHair=avatar.querySelector('img[src*="圣女发型"]');
+        [whiteLayer,irisLayer,orbitLayer].forEach(layer=>saintHair?avatar.insertBefore(layer,saintHair):avatar.appendChild(layer));
+      }
+      const eyeLightness=Number(npc.eyeLightness ?? npc.avatar?.eyeLightness ?? 0);
+      const eyeSaturation=Number(npc.eyeSaturation ?? npc.avatar?.eyeSaturation ?? 0);
+      const eyeHue=Number(npc.eyeHue ?? npc.avatar?.eyeHue ?? 0);
+      const irisFilter=`hue-rotate(${eyeHue*2.4}deg) saturate(${Math.max(.05,1.3+eyeSaturation/100)}) brightness(${Math.max(0,100+eyeLightness)}%)`;
+      avatar.querySelectorAll('img').forEach(image=>{if(image.src.endsWith('女虹膜.png'))image.style.filter=irisFilter;});
+      const eyeStack=[...avatar.querySelectorAll('[data-eye-layer]')];
+      if(eyeStack.length===3){const white=eyeStack.find(image=>image.dataset.eyeLayer==='white');const iris=eyeStack.find(image=>image.dataset.eyeLayer==='iris');const orbit=eyeStack.find(image=>image.dataset.eyeLayer==='orbit');if(white&&iris&&orbit)avatar.append(white,iris,orbit);}
+      if(npc.gender==='女'&&npc.age>15&&!(npc.avatar&&npc.avatar.saint)&&!(npc.avatar&&npc.avatar.saintFull)&&!(npc.avatar&&npc.avatar.paladin)&&avatar.querySelector('[data-eye-layer="orbit"]')&&!avatar.querySelector('img[src*="女脸型"]')){
+        const addLayer=(src,filter='',beforeEyes=false)=>{const image=document.createElement('img');image.className='layer';image.src=src;image.alt='';image.style.filter=filter;if(beforeEyes)avatar.insertBefore(image,avatar.querySelector('[data-eye-layer]'));else avatar.appendChild(image);};
+        addLayer(`女脸型${Number(npc.avatar?.face??1)}.png`,`brightness(${100+(npc.skinLightness||0)/2}%)`,true);
+        addLayer(`女眉毛${Number(npc.avatar?.brows??1)}.png`); addLayer(`女鼻子${Number(npc.avatar?.nose??1)}.png`); addLayer(`女嘴${Number(npc.avatar?.mouth??1)}.png`);
+        addLayer(`女头发${Number(npc.avatar?.hair??1)}.png`,`sepia(${Math.max(0,35+(npc.hairSaturation||0)*.65)}%) saturate(${Math.max(0,160+(npc.hairSaturation||0)*2.4)}%) hue-rotate(${(npc.hairHue||0)*2.4}deg) brightness(${100+(npc.hairLightness||0)/2}%)`);
+        /* 51 岁起长皱纹：女性分支在上面提前 return，走不到 createAvatar 里的通用皱纹段，这里补一份（永葆青春除外） */
+        if(Number(npc.age)>=51&&!npc.eternalYouth){const wrinkles=Array.isArray(npc.wrinkles)&&npc.wrinkles.length?npc.wrinkles:randomWrinkles(); if(!Array.isArray(npc.wrinkles)||!npc.wrinkles.length)npc.wrinkles=wrinkles; wrinkles.forEach(index=>addLayer(`${wrinkleParts.prefix}${index}.png`));}
+      }
+      return avatar;
+    };
     function getDiaryLinkablePeople() {
       const people=new Map();
       const push=person=>{if(person&&person.name&&!people.has(String(person.id)))people.set(String(person.id),person);};
@@ -2095,7 +2377,9 @@
       const cost=costs[action]; if(!npc.alive||npc.age===0||game.points<cost)return; 
       if(action==='propose'){ if(!canPlayerProposeTo(npc) || Number(npc.age) < 18 || Number(game.player.age) < 18) return; game.points-=2; const relationship=getNpcRelation(npc,game.player); relationship.affinity=Math.max(relationship.affinity||0,70); relationship.lover=true; relationship.married=true; npc.affinity=Math.min(100,Math.max(npc.affinity,70)); npc.lover=true; npc.married=true; npc.spouseId=game.player.id; npc.spouseName=game.player.name; if(!game.player.married) game.player.married=true; game.player.spouseId=npc.id; game.player.spouseName=npc.name; if(!game.player.relations) game.player.relations={}; game.player.relations[npc.id]={affinity:100,lover:true,married:true}; if(!npc.relations) npc.relations={}; npc.relations[game.player.id]={affinity:100,lover:true,married:true}; addDiary(`${game.player.name}向${npc.name}求婚，${npc.name}接受了。`); if(npc.starred)addEvent(npc,`${game.player.name}向${npc.name}求婚，对方接受了。`); renderAll(); return; }
       if(action==='divorce'){ if(!game.player||!game.player.married||String(game.player.spouseId)!==String(npc.id)) return; game.points-=2; const playerRelation=getNpcRelation(game.player,npc); const npcRelation=getNpcRelation(npc,game.player); playerRelation.affinity=0; playerRelation.lover=false; playerRelation.married=false; playerRelation.casualPartner=true; npcRelation.affinity=0; npcRelation.lover=false; npcRelation.married=false; npcRelation.casualPartner=true; npc.affinity=0; npc.intimacyAffinityLocked=true; npc.lover=false; npc.married=false; npc.spouseId=null; npc.spouseName=''; game.player.married=false; game.player.spouseId=null; game.player.spouseName=''; addDiary(`${game.player.name}主动提出离婚，和${npc.name}的婚姻走到了尽头。直到办完手续他们都没有多说一句话。`); if(npc.starred)addEvent(npc,`${game.player.name}主动提出离婚，和${npc.name}的婚姻走到了尽头。直到办完手续他们都没有多说一句话。`); renderAll(); return; }
-      game.points-=cost; let text=''; if(action==='chat'){const baseGain=npc.gender==='女'?randomBetween(1,3):0; const gain=game.player&&game.player.gender==='男'?getBeautySocialGain(game.player,'chat',baseGain):baseGain; npc.affinity=Math.min(100,npc.affinity+gain); text=`和 ${npc.name} 聊了会儿天${gain?`，好感度增加 ${gain} 点`:''}。`; const reactionText = getSocialTraitReaction(npc, game.player, action, gain); if(reactionText) text += ` ${reactionText}`; } if(action==='flirt'){if(npc.age<18)return;const baseGain=randomBetween(5,10); const gain=game.player&&game.player.gender==='男'?getBeautySocialGain(game.player,'flirt',baseGain):baseGain; npc.affinity=Math.min(100,npc.affinity+gain); text=`试着向 ${npc.name} 调情，好感度增加 ${gain} 点。`; const reactionText = getSocialTraitReaction(npc, game.player, action, gain); if(reactionText) text += ` ${reactionText}`; } if(action==='intimate'){const baseGain=randomBetween(10,15); const gain=game.player&&game.player.gender==='男'?getBeautySocialGain(game.player,'intimate',baseGain):baseGain; npc.affinity=Math.min(100,npc.affinity+gain); const canBecomePregnant=npc.gender==='女'&&npc.age>=18&&npc.age<60&&!npc.pregnant&&npc.lastBirthKey!==currentKey(); const pregnant=canBecomePregnant&&Math.random()<getPregnancyChance(npc); if(pregnant){npc.pregnant=true;npc.pregnancyMonths=9;npc.pregnancyFather=game.player; } text=`和恋人 ${npc.name} 亲热了，好感度增加 ${gain} 点。${pregnant?'她怀孕了，预计九个月后生产。':npc.gender==='女'&&getLivingChildrenCount(npc)>=CHILD_SOFT_LIMIT?'她已经孕育了 4 个以上的孩子，再怀孕变得十分困难。':npc.pregnant?'她目前已经怀孕。':'这次没有怀孕。'}`; const reactionText = getSocialTraitReaction(npc, game.player, action, gain); if(reactionText) text += ` ${reactionText}`; } if(Number(npc.age)>=18&&npc.affinity>=70&&!npc.lover){npc.lover=true;text+=` ${npc.name} 和主控成为了恋人，亲热已解锁。`;} addDiary(text); if(npc.starred)addEvent(npc,text); renderAll(); }
+      /* 未成年主控不能调情 / 亲热（18 岁以后才开放）：按钮层会隐藏，这里做运行时兜底，且不扣行动点 */
+      if((action==='flirt'||action==='intimate')&&Number(game.player?.age||0)<18){showActionNotice('主控还未成年，不能进行这种互动。');return;}
+      game.points-=cost; let text=''; if(action==='chat'){const baseGain=npc.gender==='女'?randomBetween(1,3):0; const gain=game.player&&game.player.gender==='男'?getBeautySocialGain(game.player,'chat',baseGain):baseGain; npc.affinity=Math.min(100,npc.affinity+gain); text=`和 ${npc.name} 聊了会儿天${gain?`，好感度增加 ${gain} 点`:''}。`; const reactionText = getSocialTraitReaction(npc, game.player, action, gain); if(reactionText) text += ` ${reactionText}`; } if(action==='flirt'){if(Number(game.player?.age||0)<18||Number(npc.age)<18)return;const baseGain=randomBetween(5,10); const gain=game.player&&game.player.gender==='男'?getBeautySocialGain(game.player,'flirt',baseGain):baseGain; npc.affinity=Math.min(100,npc.affinity+gain); text=`试着向 ${npc.name} 调情，好感度增加 ${gain} 点。`; const reactionText = getSocialTraitReaction(npc, game.player, action, gain); if(reactionText) text += ` ${reactionText}`; } if(action==='intimate'){if(Number(game.player?.age||0)<18||Number(npc.age)<18)return;const baseGain=randomBetween(10,15); const gain=game.player&&game.player.gender==='男'?getBeautySocialGain(game.player,'intimate',baseGain):baseGain; npc.affinity=Math.min(100,npc.affinity+gain); const canBecomePregnant=npc.gender==='女'&&npc.age>=18&&npc.age<60&&!npc.pregnant&&npc.lastBirthKey!==currentKey(); const pregnant=canBecomePregnant&&Math.random()<getPregnancyChance(npc); if(pregnant){npc.pregnant=true;npc.pregnancyMonths=9;npc.pregnancyFather=game.player; } text=`和恋人 ${npc.name} 亲热了，好感度增加 ${gain} 点。${pregnant?'她怀孕了，预计九个月后生产。':npc.gender==='女'&&getLivingChildrenCount(npc)>=CHILD_SOFT_LIMIT?'她已经孕育了 4 个以上的孩子，再怀孕变得十分困难。':npc.pregnant?'她目前已经怀孕。':'这次没有怀孕。'}`; const reactionText = getSocialTraitReaction(npc, game.player, action, gain); if(reactionText) text += ` ${reactionText}`; } if(Number(npc.age)>=18&&npc.affinity>=70&&!npc.lover){npc.lover=true;text+=` ${npc.name} 和主控成为了恋人，亲热已解锁。`;} addDiary(text); if(npc.starred)addEvent(npc,text); renderAll(); }
     function getNpcRelation(first,second) { if(!first.relations)first.relations={}; if(!first.relations[second.id])first.relations[second.id]={affinity:0,lover:false,married:false}; return first.relations[second.id]; }
     function canPlayerIntimateWith(npc) { if(!npc||!game.player||Number(npc.age)<18)return false; const relation=getNpcRelation(npc,game.player); return (!!relation.lover||relation.casualPartner===true||npc.intimacyAffinityLocked===true||Number(npc.affinity)<0)&&(!npc.married||String(npc.spouseId)==='player'); }
     function socializePair(first,second) { const firstRelation=getNpcRelation(first,second); const secondRelation=getNpcRelation(second,first); markRelationshipInteraction(first,second);/* 居民之间也要记「最后互动时间」，否则「长期不互动 → 分手/离婚」的时钟永远起不来 */ const canRomance=first.gender!==second.gender&&first.age>=18&&second.age>=18; const female=first.gender==='女'?first:second; const male=first.gender==='男'?first:second; const canIntimate=canRomance&&firstRelation.lover&&!female.pregnant&&female.lastBirthKey!==currentKey(); const action=canIntimate?'亲热':canRomance&&Math.random()<.55?'调情':'聊天'; const baseGain=action==='亲热'?randomBetween(10,15):action==='调情'?randomBetween(5,10):randomBetween(1,3); const gain=male?getBeautySocialGain(male,action,baseGain):baseGain; if(canRomance){firstRelation.affinity=Math.min(100,firstRelation.affinity+gain);secondRelation.affinity=Math.min(100,secondRelation.affinity+gain);if(firstRelation.affinity>=70&&secondRelation.affinity>=70){firstRelation.lover=true;secondRelation.lover=true;}if(firstRelation.affinity>=100&&secondRelation.affinity>=100){firstRelation.married=true;secondRelation.married=true;first.spouseId=second.id;second.spouseId=first.id;first.married=true;second.married=true;first.spouseName=second.name;second.spouseName=first.name;}if(action==='亲热'&&female.age<60&&Math.random()<getPregnancyChance(female)){female.pregnant=true;female.pregnancyMonths=9;female.pregnancyFather=male;stampPregnancyGenotype(female,male&&male.id,female.id);addNpcDiary(female,`和${male.name}亲热后发现自己怀孕了。`);addNpcDiary(male,`和${female.name}亲热后，得知她怀孕了。`);}} first.socialPartnerId=second.id;second.socialPartnerId=first.id; if(first.starred||second.starred){const firstReaction=getSocialTraitReaction(second,first,action,gain);const secondReaction=getSocialTraitReaction(first,second,action,gain);const text=`${first.name} 和 ${second.name} 互相${action}。${firstRelation.married?'他们决定结为夫妻。':firstRelation.lover?'他们成为了恋人。':''}${firstReaction?` ${firstReaction}`:''}${secondReaction?` ${secondReaction}`:''}`;if(first.starred)addEvent(first,text);if(second.starred)addEvent(second,text);} }
@@ -2133,9 +2417,9 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
       const traitMeta = getProfileTraitMeta(game.player || {});
       renderTraitList(playerValue, traitMeta);
     }
-    function enterGame() { game.year=100;game.month=1;game.points=15;game.diary={};game.events={};game.eventView={year:100,month:1};game.playerChildren=[];game.pendingBirths=[];game.playerAlive=true;const name=document.getElementById('name').value.trim()||'黄毛';const gender=document.getElementById('gender').value;const playerAge=clamp(Number(document.getElementById('age').value || 18),18,50);const birthdayMonth=Number(document.getElementById('month').value || 1);const birthdayDay=Number(document.getElementById('day').value || 1);const playerBirthYear=100-playerAge;game.player={id:'player',name,gender,age:playerAge,birthYear:playerBirthYear,birthMonth:birthdayMonth,birthDay:birthdayDay,birthday:`${playerBirthYear}年${birthdayMonth}月${birthdayDay}日`,married:false,spouseName:'',alive:true,parentIds:[],children:game.playerChildren,_lastAgeMonthKey:currentKey(),hairHue, hairLightness:hairLight, hairSaturation:hairSat, skinLightness:Number(document.getElementById('skin').value),avatar:{...state}};game.npcs=[];makeDistrictResidents();const saintNpc=makeSaintNpc();saintNpc.id=game.npcs.length+1;game.npcs.push(saintNpc);const paladinNpc=makePaladinNpc();paladinNpc.id=game.npcs.length+1;game.npcs.push(paladinNpc);document.getElementById('playerNameCard').textContent=name;document.getElementById('playerBirthday').textContent=`${birthdayMonth} 月 ${birthdayDay} 日`;document.getElementById('playerSkinValue').textContent=document.getElementById('skinValue').textContent;updatePlayerTraitCard();const mini=document.getElementById('miniPortrait');mini.innerHTML='';document.querySelectorAll('#portrait .layer').forEach(image=>{const copy=image.cloneNode(true);copy.removeAttribute('id');mini.appendChild(copy);});mini.onclick=()=>openProfile(game.player);document.querySelector('.workspace').style.display='none';document.getElementById('gameScreen').classList.add('active');addDiary('搬进幸福辖区的第一天。这里看起来比想象中热闹。');renderAll(); }
+    function enterGame() { game.year=100;game.month=1;game.points=15;game.diary={};game.events={};game.eventView={year:100,month:1};game.playerChildren=[];game.pendingBirths=[];game.playerAlive=true;const name=document.getElementById('name').value.trim()||'黄毛';const gender=document.getElementById('gender').value;const playerAge=clamp(Number(document.getElementById('age').value || 18),18,50);const birthdayMonth=Number(document.getElementById('month').value || 1);const birthdayDay=Number(document.getElementById('day').value || 1);const playerBirthYear=100-playerAge;game.player={id:'player',name,gender,age:playerAge,birthYear:playerBirthYear,birthMonth:birthdayMonth,birthDay:birthdayDay,birthday:`${playerBirthYear}年${birthdayMonth}月${birthdayDay}日`,married:false,spouseName:'',alive:true,parentIds:[],children:game.playerChildren,_lastAgeMonthKey:currentKey(),/* 主控持有「王之权柄」，浓度 100%（=1）：与任何配偶所生的孩子都是子一代，必定显性遗传 */royalAuthority:true,royalAuthorityGene:1,royalAuthorityGenotype:'AA',hairHue, hairLightness:hairLight, hairSaturation:hairSat, eyeHue:Number(state.eyeHue||0), eyeLightness:Number(state.eyeLightness||0), eyeSaturation:Number(state.eyeSaturation||0), skinLightness:Number(document.getElementById('skin').value),avatar:{...state}};game.npcs=[];makeDistrictResidents();const saintNpc=makeSaintNpc();saintNpc.id=game.npcs.length+1;game.npcs.push(saintNpc);const paladinNpc=makePaladinNpc();paladinNpc.id=game.npcs.length+1;game.npcs.push(paladinNpc);document.getElementById('playerNameCard').textContent=name;document.getElementById('playerBirthday').textContent=`${birthdayMonth} 月 ${birthdayDay} 日`;document.getElementById('playerSkinValue').textContent=document.getElementById('skinValue').textContent;updatePlayerTraitCard();const mini=document.getElementById('miniPortrait');mini.innerHTML='';document.querySelectorAll('#portrait .layer').forEach(image=>{const copy=image.cloneNode(true);copy.removeAttribute('id');mini.appendChild(copy);});mini.onclick=()=>openProfile(game.player);document.querySelector('.workspace').style.display='none';document.getElementById('gameScreen').classList.add('active');addDiary('搬进幸福辖区的第一天。这里看起来比想象中热闹。');renderAll(); }
     document.getElementById('confirm').addEventListener('click',async()=>{await namePoolsReady;enterGame();if(game.player)game.player.district='中宫';});
-    function resetToNewGame() { game.year=100;game.month=1;game.elapsedMonths=0;game.points=15;game.npcs=[];game.diary={};game.events={};game.diaryView={year:100,month:1};game.eventView={year:100,month:1};game.playerChildren=[];game.pendingBirths=[];game.retiredPlayers=[];game.retiredPeople=[];game.playerAlive=true;game.player=null;document.getElementById('gender').value='男';document.getElementById('age').value=20;setCreatorGender('男');document.getElementById('month').value=1;refreshDays();document.getElementById('day').value=1;syncBirthdayFromAge();traitOrder.forEach(key=>{state[key]=1;});document.querySelector('.skin-layer').src=image('face');traitOrder.filter(key=>key!=='face').forEach(key=>{document.getElementById(parts[key].id).src=image(key);});['hue','lightness','saturation','skin'].forEach(id=>{const input=document.getElementById(id);input.value=0;input.dispatchEvent(new Event('input'));});updateTraits(); }
+    function resetToNewGame() { game.year=100;game.month=1;game.elapsedMonths=0;game.points=15;game.npcs=[];game.diary={};game.events={};game.diaryView={year:100,month:1};game.eventView={year:100,month:1};game.playerChildren=[];game.pendingBirths=[];game.retiredPlayers=[];game.retiredPeople=[];game.playerAlive=true;game.player=null;document.getElementById('gender').value='男';document.getElementById('age').value=20;setCreatorGender('男');document.getElementById('month').value=1;refreshDays();document.getElementById('day').value=1;syncBirthdayFromAge();traitOrder.forEach(key=>{state[key]=1;});document.querySelector('.skin-layer').src=image('face');traitOrder.filter(key=>key!=='face'&&key!=='eyes').forEach(key=>{const layer=document.getElementById(parts[key].id);if(layer)layer.src=image(key);});state.eyeHue=0;state.eyeLightness=0;state.eyeSaturation=0;hairHue=0;hairLight=0;hairSat=0;['hue','lightness','saturation','skin'].forEach(id=>{const input=document.getElementById(id);input.value=0;input.dispatchEvent(new Event('input'));});applyHair();refreshCreatorEyeLayers();updateTraits(); }
     const restartConfirmBackdrop=document.getElementById('restartConfirmBackdrop');
     function closeRestartConfirm(){if(restartConfirmBackdrop)restartConfirmBackdrop.classList.remove('open');}
     function restartGame(){closeRestartConfirm();resetToNewGame();game.activeDistrict='中宫';document.getElementById('gameScreen').classList.remove('active');document.querySelector('.workspace').style.display='grid';}
@@ -2212,9 +2496,14 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
     document.getElementById('closeNpcDiary').addEventListener('click',()=>document.getElementById('npcDiaryBackdrop').classList.remove('open')); document.getElementById('npcDiaryBackdrop').addEventListener('click',event=>{if(event.target.id==='npcDiaryBackdrop')event.currentTarget.classList.remove('open');});
     document.getElementById('previousNpcDiary').addEventListener('click',()=>moveNpcDiaryPage(-1)); document.getElementById('nextNpcDiary').addEventListener('click',()=>moveNpcDiaryPage(1)); document.getElementById('firstNpcDiary').addEventListener('click',()=>{if(!diaryNpc)return;const first=getFirstDiaryMonth(diaryNpc);diaryNpc.diaryPageYear=first.year;diaryNpc.diaryPageMonth=first.month;renderNpcDiary();}); document.getElementById('lastNpcDiary').addEventListener('click',()=>{if(!diaryNpc)return;diaryNpc.diaryPageYear=game.year;diaryNpc.diaryPageMonth=game.month;renderNpcDiary();}); document.getElementById('npcDiaryFilter').addEventListener('change',renderNpcDiary);
     const syncName=()=>{document.getElementById('name').value=(document.getElementById('surname').value||'黄')+(document.getElementById('givenName').value||'毛');}; document.getElementById('surname').addEventListener('input',syncName); document.getElementById('givenName').addEventListener('input',syncName);
-    const baseMakeChildNpc=makeChildNpc; makeChildNpc=(mother,father,childGender)=>{const actualFather=mother&&mother.pregnancyFather?mother.pregnancyFather:(father&&father.id==='player'?{id:null,name:'不详',gender:'男',alive:true}:father);const colourFather=(father&&father!==actualFather)?Object.assign({},actualFather,{avatar:father.avatar,hairHue:father.hairHue,hairLightness:father.hairLightness,hairSaturation:father.hairSaturation,skinLightness:father.skinLightness}):actualFather;/* 五官 / 发色 / 肤色都按「真实父亲 + 真实母亲」算：只有姓氏与父子关系记录继续用匿名占位对象 */const child=baseMakeChildNpc(mother,colourFather,childGender);const motherYouthGene=Math.max(Number(mother.youthGeneStrength)||0,Number(mother.eternalYouthStrength)||0);const fatherYouthGene=youthGeneOf(father||actualFather);/* 浓度一律按「真实父亲」计算：哪怕是私生子、哪怕父亲是主控，占位对象只是用于匿名的姓氏/关系记录 */const youthInherit=inheritTraitGene(motherYouthGene,fatherYouthGene);child.youthGeneStrength=youthInherit.stored;child.eternalYouth=youthInherit.manifest;child.eternalYouthStrength=child.eternalYouth?child.youthGeneStrength:0;child.royalAuthority=(hasRoyalAuthority(mother)&&Math.random()<.7)||(hasRoyalAuthority(actualFather)&&Math.random()<.7);child.surname=getChildSurname(mother,actualFather,child);child.name=`${child.surname}${getRandomGivenName(childGender)}`;return child;};
+    const baseMakeChildNpc=makeChildNpc; makeChildNpc=(mother,father,childGender)=>{const actualFather=mother&&mother.pregnancyFather?mother.pregnancyFather:(father&&father.id==='player'?{id:null,name:'不详',gender:'男',alive:true}:father);const colourFather=(father&&father!==actualFather)?Object.assign({},actualFather,{avatar:father.avatar,hairHue:father.hairHue,hairLightness:father.hairLightness,hairSaturation:father.hairSaturation,skinLightness:father.skinLightness,eyeHue:father.eyeHue,eyeLightness:father.eyeLightness,eyeSaturation:father.eyeSaturation}):actualFather;/* 五官 / 发色 / 瞳色 / 肤色都按「真实父亲 + 真实母亲」算：只有姓氏与父子关系记录继续用匿名占位对象 */const child=baseMakeChildNpc(mother,colourFather,childGender);const motherYouthGene=Math.max(Number(mother.youthGeneStrength)||0,Number(mother.eternalYouthStrength)||0);const fatherYouthGene=youthGeneOf(father||actualFather);/* 浓度一律按「真实父亲」计算：哪怕是私生子、哪怕父亲是主控，占位对象只是用于匿名的姓氏/关系记录 */const youthInherit=inheritTraitGene(motherYouthGene,fatherYouthGene);child.youthGeneStrength=youthInherit.stored;child.eternalYouth=youthInherit.manifest;child.eternalYouthStrength=child.eternalYouth?child.youthGeneStrength:0;child.royalAuthority=(hasRoyalAuthority(mother)&&Math.random()<.7)||(hasRoyalAuthority(actualFather)&&Math.random()<.7);child.surname=getChildSurname(mother,actualFather,child);child.name=`${child.surname}${getRandomGivenName(childGender)}`;return child;};
     document.getElementById('confirm').addEventListener('click',()=>{syncName();if(game.player){game.player.surname=document.getElementById('surname').value||'黄';game.player.name=document.getElementById('name').value;game.player.eternalYouth = !!game.player.eternalYouth;game.player.eternalYouthStrength = Number(game.player.eternalYouthStrength || 0);game.player.youthGeneStrength = Number(game.player.youthGeneStrength || 0);game.player.royalAuthority = !!game.player.royalAuthority; if (!Array.isArray(game.player.wrinkles)) game.player.wrinkles = [];}});
-    const getAllPeople=()=>{const people=new Map();[...game.npcs,...(game.playerChildren||[]),...(game.retiredPlayers||[]),...(game.retiredPeople||[]),...(game.player?[game.player]:[])].forEach(person=>{if(person&&!people.has(String(person.id)))people.set(String(person.id),person);});return [...people.values()];};
+    /* getAllPeople() 要去重并重建一次 Map，历史上被大量循环反复调用（血亲检查 / 候选筛选 / 各种全员扫描），
+       是「人一多就卡」的另一大来源。名单只会在「人数变化」或「主控身份变化」时改变，用这两个信息做签名缓存；
+       advanceMonth / 换主控时显式失效。返回副本，避免调用方改动缓存数组。 */
+    let peopleCache=null,peopleCacheSignature='';
+    function invalidatePeopleCache(){peopleCache=null;peopleCacheSignature='';}
+    const getAllPeople=()=>{const signature=`${game.npcs.length}|${(game.playerChildren||[]).length}|${(game.retiredPlayers||[]).length}|${(game.retiredPeople||[]).length}|${game.player?String(game.player.id)+'/'+String(game.player.name):''}`;if(peopleCache&&peopleCacheSignature===signature)return peopleCache.slice();const people=new Map();[...game.npcs,...(game.playerChildren||[]),...(game.retiredPlayers||[]),...(game.retiredPeople||[]),...(game.player?[game.player]:[])].forEach(person=>{if(person&&!people.has(String(person.id)))people.set(String(person.id),person);});peopleCache=[...people.values()];peopleCacheSignature=signature;return peopleCache.slice();};
     const findAnyPerson=reference=>{ if(!reference) return null; if(reference==='player') return game.player || null; const id=String(reference); const pool=getAllPeople(); if(typeof reference === 'object' && reference.id !== undefined) return pool.find(person=>String(person.id)===String(reference.id))||null; return pool.find(person=>String(person.id)===id||person.name===reference)||null; };
     const findFamilyPerson=id=>findAnyPerson(id);
     const processResidentsWithoutImplicitPlayerChildren=processResidents;
@@ -2452,7 +2741,15 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
     function residentRelationshipEndText(first,second) { return `${first.name}和${second.name}因为长期没有互动，决定离婚。双方办理手续时都没有多说一句话。`; }
     function npcRelationAffinity(first,second) { return getNpcRelation(first,second).affinity||0; }
     function tryNpcIntimacy(first,second,relation,reciprocal) { /* 命定专属：不与他人亲热 */ if(isFatedReservedForOther(first,second.id)||isFatedReservedForOther(second,first.id))return false; const female=first.gender==='女'?first:second;const male=first.gender==='男'?first:second;if(!female||female.pregnant||female.lastBirthKey===currentKey()||female.age<18||female.age>50)return false;const casual=relation.casualPartner===true||reciprocal.casualPartner===true||Number(first.affinity)<0||Number(second.affinity)<0;if(!casual){relation.affinity=Math.min(100,relation.affinity+randomBetween(10,15));reciprocal.affinity=Math.min(100,reciprocal.affinity+randomBetween(10,15));}const marriageAffair=(hasCurrentSpouse(first)&&String(first.spouseId)!==String(second.id))||(hasCurrentSpouse(second)&&String(second.spouseId)!==String(first.id));const loveAffairContext=!marriageAffair&&getLoveAffairContext(first,second);const affairVictim=marriageAffair?(hasCurrentSpouse(first)&&String(first.spouseId)!==String(second.id)?findAnyPerson(first.spouseId):findAnyPerson(second.spouseId)):loveAffairContext&&loveAffairContext.victim;if(marriageAffair||loveAffairContext){const affairType=marriageAffair?'婚姻出轨':'恋爱出轨';const affairText=marriageAffair?`${first.name}和${second.name}发生了婚姻出轨：在已有婚姻期间越过了边界，与婚姻外的人发生了关系。`:`${loveAffairContext.cheater.name}和${loveAffairContext.outsider.name}发生了关系，不过${loveAffairContext.victim.name}似乎被人欺骗，自己还不自知……`;recordAffairDiaries(affairText,affairType,[first,second,loveAffairContext&&loveAffairContext.victim],affairVictim);}if(Math.random()<getPregnancyChance(female)){female.pregnant=true;female.pregnancyMonths=9;female.pregnancyFather=male;stampPregnancyGenotype(female,male&&male.id,female.id);recordPregnancyDiary(female,male);}return true;}
-    socializeResidents=()=>{const residents=game.npcs.filter(npc=>npc.alive&&npc.age>0);residents.forEach(first=>{const intimateCounts=new Map();const candidates=residents.filter(second=>second.id!==first.id).sort((a,b)=>npcRelationAffinity(first,b)-npcRelationAffinity(first,a));for(let count=0;count<10&&candidates.length;count++){const second=candidates[count%candidates.length];const relation=getNpcRelation(first,second);const reciprocal=getNpcRelation(second,first);const romantic=game.elapsedMonths>=3&&romanceAllowed(first,second);if(first.married&&second.married&&String(first.spouseId)===String(second.id)&&String(second.spouseId)===String(first.id)&&Math.random()<.01){first.married=false;second.married=false;first.spouseId=null;second.spouseId=null;first.spouseName='';second.spouseName='';relation.married=false;reciprocal.married=false;relation.lover=false;reciprocal.lover=false;const divorceText=`${first.name}和${second.name}的婚姻走到了尽头。直到办完手续他们都没有多说一句话。`;addNpcDiary(first,divorceText);addNpcDiary(second,divorceText);continue;}let action='聊天';if(romantic&&relation.lover&&reciprocal.lover&&(intimateCounts.get(second.id)||0)<2&&[...intimateCounts.keys()].length<5){action='亲热';intimateCounts.set(second.id,(intimateCounts.get(second.id)||0)+1);tryNpcIntimacy(first,second,relation,reciprocal);}else if(romantic&&relation.affinity>=60&&reciprocal.affinity>=60){action='调情';const gain=randomBetween(5,10);relation.affinity=Math.min(100,relation.affinity+gain);reciprocal.affinity=Math.min(100,reciprocal.affinity+gain);if(relation.affinity>=70&&reciprocal.affinity>=70){relation.lover=true;reciprocal.lover=true;}}else{const gain=randomBetween(1,3);relation.affinity=Math.min(100,relation.affinity+gain);reciprocal.affinity=Math.min(100,reciprocal.affinity+gain);}if(!first.married&&!second.married&&relation.affinity>=100&&reciprocal.affinity>=100&&romantic&&!hasExclusiveLover(first,second.id)&&!hasExclusiveLover(second,first.id)){relation.married=true;reciprocal.married=true;first.married=true;second.married=true;first.spouseId=second.id;second.spouseId=first.id;first.spouseName=second.name;second.spouseName=first.name;const proposalText=`${first.name}向${second.name}求婚，${second.name}接受了。`;addNpcDiary(first,proposalText);addNpcDiary(second,proposalText);}first.socialPartnerId=second.id;second.socialPartnerId=first.id;const places=['一楼门口','小区花园','便利店门前','快递柜旁','楼道窗边'];const descriptions={聊天:'聊起了最近的天气',调情:'交换了一个意味深长的眼神',亲热:'在夜色里度过了一段私密时光'};addNpcDiary(first,`在${randomItem(places)}遇见了${second.name}，${descriptions[action]}。`);}});};
+    socializeResidents=()=>{const residents=game.npcs.filter(npc=>npc.alive&&npc.age>0);const residentsById=new Map(residents.map(person=>[String(person.id),person]));residents.forEach(first=>{const intimateCounts=new Map();
+      /* 候选池：配偶 / 恋人 / 炮友 / 上月互动对象必定在场（否则「长期不互动」会把正常夫妻误判成分手），
+         再随机补最多 12 人。原来是对全体排序（O(N² log N)/月），这是人口一多就卡顿的大头。 */
+      const anchors=[];const pushAnchor=id=>{if(id===undefined||id===null)return;const person=residentsById.get(String(id));if(person&&person!==first&&!anchors.includes(person))anchors.push(person);};
+      pushAnchor(first.spouseId);pushAnchor(first.socialPartnerId);
+      Object.keys(first.relations||{}).forEach(id=>{const relation=first.relations[id];if(relation&&(relation.lover||relation.married||relation.casualPartner))pushAnchor(id);});
+      const sampled=[];const sampleTarget=Math.min(12,Math.max(0,residents.length-1));
+      for(let guard=0;guard<sampleTarget*3&&sampled.length<sampleTarget;guard++){const person=residents[randomBetween(0,residents.length-1)];if(person&&person!==first&&!sampled.includes(person)&&!anchors.includes(person))sampled.push(person);}
+      const candidates=anchors.concat(sampled).sort((a,b)=>npcRelationAffinity(first,b)-npcRelationAffinity(first,a));for(let count=0;count<10&&candidates.length;count++){const second=candidates[count%candidates.length];const relation=getNpcRelation(first,second);const reciprocal=getNpcRelation(second,first);const romantic=game.elapsedMonths>=3&&romanceAllowed(first,second);if(first.married&&second.married&&String(first.spouseId)===String(second.id)&&String(second.spouseId)===String(first.id)&&Math.random()<.01){first.married=false;second.married=false;first.spouseId=null;second.spouseId=null;first.spouseName='';second.spouseName='';relation.married=false;reciprocal.married=false;relation.lover=false;reciprocal.lover=false;const divorceText=`${first.name}和${second.name}的婚姻走到了尽头。直到办完手续他们都没有多说一句话。`;addNpcDiary(first,divorceText);addNpcDiary(second,divorceText);continue;}let action='聊天';if(romantic&&relation.lover&&reciprocal.lover&&(intimateCounts.get(second.id)||0)<2&&[...intimateCounts.keys()].length<5){action='亲热';intimateCounts.set(second.id,(intimateCounts.get(second.id)||0)+1);tryNpcIntimacy(first,second,relation,reciprocal);}else if(romantic&&relation.affinity>=60&&reciprocal.affinity>=60){action='调情';const gain=randomBetween(5,10);relation.affinity=Math.min(100,relation.affinity+gain);reciprocal.affinity=Math.min(100,reciprocal.affinity+gain);if(relation.affinity>=70&&reciprocal.affinity>=70){relation.lover=true;reciprocal.lover=true;}}else{const gain=randomBetween(1,3);relation.affinity=Math.min(100,relation.affinity+gain);reciprocal.affinity=Math.min(100,reciprocal.affinity+gain);}if(!first.married&&!second.married&&relation.affinity>=100&&reciprocal.affinity>=100&&romantic&&!hasExclusiveLover(first,second.id)&&!hasExclusiveLover(second,first.id)){relation.married=true;reciprocal.married=true;first.married=true;second.married=true;first.spouseId=second.id;second.spouseId=first.id;first.spouseName=second.name;second.spouseName=first.name;const proposalText=`${first.name}向${second.name}求婚，${second.name}接受了。`;addNpcDiary(first,proposalText);addNpcDiary(second,proposalText);}first.socialPartnerId=second.id;second.socialPartnerId=first.id;const places=['一楼门口','小区花园','便利店门前','快递柜旁','楼道窗边'];const descriptions={聊天:'聊起了最近的天气',调情:'交换了一个意味深长的眼神',亲热:'在夜色里度过了一段私密时光'};addNpcDiary(first,`在${randomItem(places)}遇见了${second.name}，${descriptions[action]}。`);}});};
     triggerDailyEvents=()=>{const residents=game.npcs.filter(npc=>npc.alive&&npc.age>0);for(let index=0;index<3;index++){const npc=randomItem(residents);const delta=(Math.random()<.5?-1:1)*randomBetween(1,10);npc.affinity=Math.max(0,Math.min(60,npc.affinity+delta));const text=`日常事件：${npc.name} ${delta>0?'在小区里遇到了一件开心的小事':'今天遇到了一点不顺心的事'}，主控对其好感度${delta>0?'增加':'减少'} ${Math.abs(delta)} 点。`;addDiary(text);addNpcDiary(npc,text);if(npc.starred)addEvent(npc,text);}};
     /* 调情被拒绝时的原因：对方只要有配偶或爱人就会拒绝；其中约一半概率点名具体对象（配偶或随机一名爱人），另一半用含糊说法“心有所属”。 */
     const vagueRefusalReason='心有所属';
@@ -2628,6 +2925,8 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
       const costs={chat:1,flirt:2,intimate:2,propose:2,divorce:2};
       const cost=costs[action];
       if(!npc || !npc.alive || npc.age===0 || !Number.isFinite(game.points) || game.points < cost) return;
+      /* 未成年主控不能调情 / 亲热（18 岁才开放）：这里是最外层的玩家互动实现，先拦住再谈剧情，且不扣行动点 */
+      if((action==='flirt'||action==='intimate')&&Number(game.player?.age||0)<18){showActionNotice('主控还未成年，不能进行这种互动。',npc,action);return;}
       const playerId = game.player ? String(game.player.id) : '';
       const hasOtherLover = !!(npc && !isPlayerPerson(npc) && ((npc.spouseId && String(npc.spouseId) !== playerId) || liveRomanticPartners(npc, playerId).length > 0));
       /* 命定专属（圣女×圣骑士）：即使还没建立 lover 标记（老存档/未初始化），调情也必须被拒 */
@@ -2705,7 +3004,7 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
       }
       return originalPlayerInteract(npc, action);
     };
-    const originalAdvanceMonth=advanceMonth; advanceMonth=(amount=1)=>{game.elapsedMonths+=amount;originalAdvanceMonth(amount);};
+    const originalAdvanceMonth=advanceMonth; advanceMonth=(amount=1)=>{invalidatePeopleCache();game.elapsedMonths+=amount;originalAdvanceMonth(amount);};
     const originalRenderAll=renderAll; renderAll=()=>{originalRenderAll();document.querySelectorAll('#npcList .npc-row, #contactList .npc-row').forEach(row=>{const npc=game.npcs.find(item=>String(item.id)===row.dataset.id);const metas=row.querySelectorAll('.npc-meta');if(npc&&metas[1])metas[1].textContent=`好感度 ${npc.affinity}`;});};
     const familyTreeObserver=new MutationObserver(()=>{document.querySelectorAll('#familyTree .family-generation').forEach(row=>{if(row.dataset.spousesDecorated||!row.textContent.includes('父母'))return;row.dataset.spousesDecorated='true';[...row.querySelectorAll('.family-person')].forEach(person=>{const name=person.querySelector('b')?.textContent;const source=game.npcs.find(npc=>npc.name===name);const spouse=source&&source.spouseId?findFamilyPerson(source.spouseId):null;if(!spouse||row.querySelector(`[data-person-id="${spouse.id}"]`))return;const spouseCard=document.createElement('div');spouseCard.className='family-person';spouseCard.dataset.personId=spouse.id;spouseCard.append(createAvatar(spouse,true));const info=document.createElement('span');info.innerHTML=`<b>${spouse.name}</b><small>${spouse.age}岁 · ${spouse.gender} · 配偶</small>`;spouseCard.append(info);row.appendChild(spouseCard);});});});familyTreeObserver.observe(document.getElementById('familyTree'),{childList:true,subtree:true});
     const originalProcessResidentsForBirths=processResidents;
@@ -2813,13 +3112,19 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
       }
       return '';
     }
+    function getMaleEyeOrbitScore(person) {
+      const eyeIndex = Number(person?.avatar?.eyes ?? 1);
+      const orbitFile = maleEyeOrbitFiles[Math.max(0, Math.min(maleEyeOrbitFiles.length - 1, eyeIndex - 1))] || maleEyeOrbitFiles[0];
+      const matched = orbitFile.match(/(\d+)\.png$/);
+      return matched ? Number(matched[1]) : eyeIndex;
+    }
     function getMaleBeautyMeta(person) {
       if (!person || person.gender !== '男') return null;
       const face = paladinFeatureScore(person,'face',Number(person.avatar && person.avatar.face !== undefined ? person.avatar.face : 1));
-      const eyes = paladinFeatureScore(person,'eyes',Number(person.avatar && person.avatar.eyes !== undefined ? person.avatar.eyes : 1));
+      const eyes = person.avatar?.paladinFeatures === true ? paladinFeatureScore(person,'eyes',getMaleEyeOrbitScore(person)) : getMaleEyeOrbitScore(person);
       const nose = paladinFeatureScore(person,'nose',Number(person.avatar && person.avatar.nose !== undefined ? person.avatar.nose : 1));
-      /* 固定 NPC（圣骑士）用专用素材库，不走通用脸型/眼睛/鼻子编号，所以直接给成品分；
-         普通居民仍然是 脸型分 + 眼睛分 + 鼻子分。 */
+      /* 固定 NPC（圣骑士）用专用素材库，不走通用脸型/眼眶/鼻子编号，所以直接给成品分；
+         普通居民仍然是 脸型分 + 眼眶分 + 鼻子分（眼眶是五官之一）。 */
       const fixedScore = Number(person.beautyScore);
       const score = Number.isFinite(fixedScore) && fixedScore > 0 ? fixedScore : face + eyes + nose;
       if (score <= 7) return { score, label: '丑男', description: '拥有此特质的人受异性的白眼还差不多。' };
@@ -3257,7 +3562,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     const baseBloodSafeCanPropose=canPlayerProposeTo;
     canPlayerProposeTo=npc=>!!game.player&&!!npc&&!areBloodRelated(game.player,npc)&&baseBloodSafeCanPropose(npc);
     const baseBloodSafeCanIntimate=canPlayerIntimateWith;
-    canPlayerIntimateWith=npc=>{if(!game.player||!npc)return false;const interloperChannel=canInterlopeWith(game.player,npc);/* 怀孕 / 坐月子期间不能亲热——插足通道同样遵守这条规则 */if(game.player.pregnant||Number(npc.postpartumMonths||0)>0||npc.pregnant)return false;if(areBloodRelated(game.player,npc))return false;const relation=getNpcRelation(npc,game.player);const isCasualPartner=relation.casualPartner===true||npc.casualPartner===true;const isAvailable=!npc.married||String(npc.spouseId)==='player';return (interloperChannel||isAvailable)&&(interloperChannel||isCasualPartner||npc.formerSpouseCasual===true||baseBloodSafeCanIntimate(npc));};
+    canPlayerIntimateWith=npc=>{if(!game.player||!npc)return false;if(Number(game.player.age)<18||Number(npc.age)<18)return false;const interloperChannel=canInterlopeWith(game.player,npc);/* 怀孕 / 坐月子期间不能亲热——插足通道同样遵守这条规则 */if(game.player.pregnant||Number(npc.postpartumMonths||0)>0||npc.pregnant)return false;if(areBloodRelated(game.player,npc))return false;const relation=getNpcRelation(npc,game.player);const isCasualPartner=relation.casualPartner===true||npc.casualPartner===true;const isAvailable=!npc.married||String(npc.spouseId)==='player';return (interloperChannel||isAvailable)&&(interloperChannel||isCasualPartner||npc.formerSpouseCasual===true||baseBloodSafeCanIntimate(npc));};
     const baseBloodSafeInteract=interact;
     interact=(npc,action)=>{if(game.player&&npc&&areBloodRelated(game.player,npc)&&(action==='flirt'||action==='intimate'||action==='propose')){showActionNotice('你们之间存在血缘关系，不能进行这种互动。');return;}baseBloodSafeInteract(npc,action);};
     const relationshipUpgradeInteract=interact;
@@ -3586,10 +3891,16 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     function classifyDiaryText(text) { const value=String(text||'');if(!value||/^日常事件：/.test(value)||/聊了会儿天|在.+遇见了.+，|交换了一个意味深长的眼神/.test(value))return value;const type=getDiaryEventType(value);if(type&&!diaryEventTypes.has(value))diaryEventTypes.set(value,type);return value; }
     function appendBirthParentRelationship(text) {
       const value=String(text||'');
-      if(!/出生|生下了|生下|母子平安|母女平安/.test(value)||value.includes('现在他们的父母')||(value.includes('孩子名字为')&&value.includes('父亲')&&value.includes('母亲')))return value;
-      const people=getAllPeople();
-      const children=people.flatMap(parent=>(parent.children||[])).concat((game.pendingBirths||[]).map(pending=>pending.child)).filter(Boolean);
-      const child=children.find(person=>person&&person.name&&value.includes(person.name));
+      if(!/出生|生下了|生下|母子平安|母女平安/.test(value)||/现在.+的父母.+是.+关系。/.test(value)||(value.includes('孩子名字为')&&value.includes('父亲')&&value.includes('母亲')))return value;
+      /* 只认「刚出生的孩子」：出生文案里通常同时写着母亲（甚至父亲）的名字，而父母本人也是「别人的孩子」，
+         以前按名字模糊匹配会先命中父母自己 → 打印出外公外婆的关系（第二代就露馅）。
+         这里限定候选必须是新生儿（age<=0）或「待决定的那个孩子」，并取名字最长（最具体）的匹配。 */
+      const pendingChildren=(game.pendingBirths||[]).map(pending=>pending&&pending.child).filter(Boolean);
+      const newborns=getAllPeople().flatMap(parent=>(parent.children||[])).concat(pendingChildren)
+        .filter(person=>person&&person.name&&Number(person.age)<=0);
+      const child=pendingChildren.concat(newborns)
+        .filter(person=>person&&person.name&&value.includes(person.name))
+        .sort((first,second)=>String(second.name).length-String(first.name).length)[0];
       if(!child)return value;
       const parents=[];
       [...(child.parentIds||[]),child.motherId,child.biologicalFatherId].filter(Boolean).forEach(id=>{const parent=findAnyPerson(id);if(parent&&!parents.some(item=>String(item.id)===String(parent.id)))parents.push(parent);});
@@ -3600,7 +3911,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         const status=first.married&&second.married&&String(first.spouseId)===String(second.id)&&String(second.spouseId)===String(first.id)?'夫妻':firstRelation.lover&&secondRelation.lover?'恋人':firstRelation.casualPartner||secondRelation.casualPartner?'肉体关系':Math.min(Number(firstRelation.affinity)||0,Number(secondRelation.affinity)||0)>=60?'朋友':'普通邻居';
         relationships.push(`${first.name}和${second.name}是${status}关系`);
       }
-      return `${value}现在他们的父母${relationships.join('；')}。`;
+      return `${value}现在${child.name}的父母${relationships.join('；')}。`;
     }
     function normalizeAllMarriageAffairDiaries() { Object.keys(game.diary||{}).forEach(key=>{game.diary[key]=(game.diary[key]||[]).map(normalizeAffairText);});game.npcs.forEach(person=>{person.npcDiary=(person.npcDiary||[]).map(entry=>({...entry,text:normalizeAffairText(entry.text)}));}); }
     function normalizeResidentDivorceReason(text) { const value=String(text||'');const match=value.match(/^(.+?)和(.+?)的婚姻走到了尽头。直到办完手续他们都没有多说一句话。$/);if(!match)return value;const first=findAnyPerson(match[1]);const second=findAnyPerson(match[2]);return first&&second&&first.id!=='player'&&second.id!=='player'?`${first.name}和${second.name}因为婚姻关系逐渐冷却，决定离婚。双方办理手续时都没有多说一句话。`:value; }
@@ -3904,32 +4215,65 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       mini.innerHTML='';
       mini.classList.remove('male','female');
       mini.classList.add(game.player.gender==='女'?'female':'male');
+      /* 未成年主控（≤15 岁）保持婴儿头像，满 16 岁才「开脸」——与 createAvatar 的婴儿分支同一口径。
+         交接权柄给未成年子女后，侧栏小头像也必须继续是婴儿，不能强行画成成年五官。 */
+      if(Number(game.player.age)<=15){
+        const baby=document.createElement('img');
+        baby.src=game.player.gender==='男'?'男婴儿.png':'女婴儿.png';
+        baby.alt='婴儿头像';
+        baby.style.filter=`brightness(${100+(game.player.skinLightness||0)/2}%)`;
+        mini.appendChild(baby);
+        mini.onclick=()=>openProfile(game.player);
+        document.getElementById('retireButton').hidden=!getDirectPlayerChildren().some(child=>Number(child.age)>=18);
+        return;
+      }
       const playerSaintStack=!!(game.player.avatar&&(game.player.avatar.saint||game.player.avatar.saintFull));
       if(playerSaintStack){
         saintParts.layers.forEach(file=>{
           const layer=document.createElement('img');
           layer.className=`layer${file==='圣女脸'?' skin-layer':''}${file==='圣女发型'?' hair-layer':''}`;
-          layer.src=`${saintParts.dir}/${file}.png`;
+          if(file==='圣女发型'||file==='圣女发饰') layer.style.zIndex='3';
+          layer.src=file.startsWith('女通用眼睛/')?file:`${saintParts.dir}/${file}.png`;
           if(file==='圣女脸') layer.style.filter=`brightness(${100+(game.player.skinLightness||0)/2}%)`;
           if(file==='圣女发型') layer.style.filter=`sepia(${Math.max(0,35+(game.player.hairSaturation||0)*.65)}%) saturate(${Math.max(0,160+(game.player.hairSaturation||0)*2.4)}%) hue-rotate(${(game.player.hairHue||0)*2.4}deg) brightness(${100+(game.player.hairLightness||0)/2}%)`;
+          if(file==='圣女眼眶') layer.style.filter=`brightness(${100+(game.player.skinLightness||0)/2}%)`;
+          if(file.endsWith('女虹膜.png')) layer.style.filter=`hue-rotate(${Number(game.player.eyeHue ?? game.player.avatar?.eyeHue ?? 0)*2.4}deg) saturate(${Math.max(.05,1.3+Number(game.player.eyeSaturation ?? game.player.avatar?.eyeSaturation ?? 0)/100)}) brightness(${Math.max(0,100+Number(game.player.eyeLightness ?? game.player.avatar?.eyeLightness ?? 0))}%)`;
           mini.appendChild(layer);
         });
+        const [saintIris,saintWhite,saintOrbit]=makeFemaleEyeLayerStack({orbit:1,hue:Number(game.player.eyeHue ?? game.player.avatar?.eyeHue ?? 0),lightness:Number(game.player.eyeLightness ?? game.player.avatar?.eyeLightness ?? 0),saturation:Number(game.player.eyeSaturation ?? game.player.avatar?.eyeSaturation ?? 0),skinLightness:0});
+        saintOrbit.src='圣女遗传库/圣女眼眶.png';
+        saintOrbit.style.filter=`brightness(${100+(game.player.skinLightness||0)/2}%)`;
+        [saintWhite,saintIris,saintOrbit].forEach(layer=>{layer.style.zIndex='1';});
+        const saintHair=mini.querySelector('img[src*="圣女发型"]');
+        [saintWhite,saintIris,saintOrbit].forEach(layer=>saintHair?mini.insertBefore(layer,saintHair):mini.appendChild(layer));
         mini.onclick=()=>openProfile(game.player);
         document.getElementById('retireButton').hidden=!getDirectPlayerChildren().some(child=>Number(child.age)>=18);
         return;
       }
       const source=game.player.gender==='男'?avatarParts:femaleParts;
-      const playerSaintFiles={face:'圣女脸',eyes:'圣女眼睛',brows:'圣女眉毛',nose:'圣女鼻子',mouth:'圣女嘴巴',hair:'圣女发型'};
+      const playerSaintFiles={face:'圣女脸',brows:'圣女眉毛',nose:'圣女鼻子',mouth:'圣女嘴巴',hair:'圣女发型'};
       const useSaintFeatures=!!(game.player.avatar&&game.player.avatar.saintFeatures)&&game.player.gender==='女';
-      ['face','eyes','brows','nose','mouth'].forEach(key=>{
+      if(game.player.gender==='女' && !useSaintFeatures){
+        const [irisLayer, whiteLayer, orbitLayer] = makeFemaleEyeLayerStack({ orbit:Number(game.player.avatar?.eyes ?? 1), white:Number(game.player.avatar?.eyeWhite ?? 1), hue:Number(game.player.eyeHue ?? game.player.avatar?.eyeHue ?? 0), lightness:Number(game.player.eyeLightness ?? game.player.avatar?.eyeLightness ?? 0), saturation:Number(game.player.eyeSaturation ?? game.player.avatar?.eyeSaturation ?? 0), skinLightness:Number(game.player.skinLightness || 0) });
+        [whiteLayer, irisLayer, orbitLayer].forEach(layer => { layer.className = 'layer'; mini.appendChild(layer); });
+      }
+      ['face','brows','nose','mouth'].forEach(key=>{
         const image=document.createElement('img');
         image.className=`layer${key==='face'?' skin-layer':''}`;
         image.src=useSaintFeatures?`${saintParts.dir}/${playerSaintFiles[key]}.png`:`${source[key].prefix}${game.player.avatar[key]}.png`;
         image.dataset.avatarLayer=key;
         if(key==='face') image.style.filter=`brightness(${100+(game.player.skinLightness||0)/2}%)`;
         mini.appendChild(image);
+        if(key==='face'&&game.player.gender==='男'){
+          const [maleIris,maleWhite,maleOrbit]=makeMaleEyeLayerStack({orbit:Number(game.player.avatar?.eyes??1),hue:Number(game.player.eyeHue??game.player.avatar?.eyeHue??0),lightness:Number(game.player.eyeLightness??game.player.avatar?.eyeLightness??0),saturation:Number(game.player.eyeSaturation??game.player.avatar?.eyeSaturation??0)});
+          [maleWhite,maleIris,maleOrbit].forEach(layer=>mini.appendChild(layer));
+        }
       });
-      if(Number(game.player.age)>=53 && !game.player.eternalYouth){
+      if(game.player.gender==='女' && useSaintFeatures){
+        const eyeBase = makeFemaleEyeLayerStack({ orbit:Number(game.player.avatar?.eyes ?? 1), white:Number(game.player.avatar?.eyeWhite ?? 1), hue:Number(game.player.eyeHue ?? game.player.avatar?.eyeHue ?? 0), lightness:Number(game.player.eyeLightness ?? game.player.avatar?.eyeLightness ?? 0), saturation:Number(game.player.eyeSaturation ?? game.player.avatar?.eyeSaturation ?? 0), skinLightness:Number(game.player.skinLightness || 0) });
+        [eyeBase[1], eyeBase[0], eyeBase[2]].forEach(layer => mini.appendChild(layer));
+      }
+      if(Number(game.player.age)>=51 && !game.player.eternalYouth){
         const wrinkles=Array.isArray(game.player.wrinkles)&&game.player.wrinkles.length ? game.player.wrinkles : randomWrinkles();
         if(!Array.isArray(game.player.wrinkles)||!game.player.wrinkles.length) game.player.wrinkles=wrinkles;
         wrinkles.forEach(index=>{
@@ -3998,6 +4342,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       (game.pendingBirths||[]).forEach(pending=>remapPerson(pending&&pending.child));
     }
     function retireToHeir(heir) {
+      invalidatePeopleCache();
       if (!game.player||!heir||heir.alive===false) return;
       const oldPlayer=game.player;
       const formerId=`former-player-${game.year}-${game.month}-${Date.now()}`;
@@ -4053,7 +4398,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     function renderHotelMonitor(year=null,month=null){const list=document.getElementById('hotelMonitorList');if(!list)return;const hasDate=year!==null&&month!==null;const residents=hasDate?getRecentResidentAffairResidents(Number(year),Number(month)):getRecentResidentAffairResidents();document.getElementById('hotelMonitorTitle').textContent=hasDate?`宾馆监控 · ${dateText(Number(year),Number(month))}`:'宾馆监控 · 近 1 年';list.innerHTML='';if(!residents.length){list.innerHTML=`<p class="contact-empty">${hasDate?`${dateText(Number(year),Number(month))}没有发现居民出轨记录。`:'近 1 年没有发现居民出轨记录。'}</p>`;return;}residents.forEach(npc=>{const item=document.createElement('button');item.type='button';item.className='hotel-monitor-person';item.title=`查看${npc.name}的资料`;item.append(createAvatar(npc,true));const name=document.createElement('strong');name.textContent=npc.name;item.append(name);item.addEventListener('click',()=>{document.getElementById('hotelMonitorBackdrop').classList.remove('open');openProfile(npc);});list.appendChild(item);});}
     function renderHotelResidents(){const list=document.getElementById('hotelList');if(!list)return;const residents=game.npcs.filter(npc=>npc.alive&&isCurrentMonthResidentAffair(npc));document.getElementById('hotelCount').textContent=`${residents.length} 人`;list.innerHTML='';if(!residents.length){list.innerHTML='<p class="contact-empty">这个月还没有居民入住小区宾馆。</p>';return;}residents.forEach(npc=>{const row=renderNpcRow(npc);const metas=row.querySelectorAll('.npc-meta');if(metas[0])metas[0].textContent=`${npc.age}岁 · 宾馆住客`;if(metas[1])metas[1].textContent='本月居民出轨';list.appendChild(row);});}
     const retirementAwareRenderAllWithHotel=renderAll;
-    renderAll=()=>{retirementAwareRenderAllWithHotel();const groupResidents=game.npcs.filter(npc=>npc.alive);document.getElementById('groupCount').textContent=`${groupResidents.length} 人 · ${groupResidents.filter(npc=>npc.gender==='男').length} 男 / ${groupResidents.filter(npc=>npc.gender==='女').length} 女`;renderHotelResidents();renderPlayerCard();};
+    renderAll=()=>{retirementAwareRenderAllWithHotel();updateGroupCountText();renderHotelResidents();renderPlayerCard();};
     document.getElementById('viewHotelMonitor').addEventListener('click',()=>{renderHotelMonitor();document.getElementById('hotelMonitorBackdrop').classList.add('open');});
     document.getElementById('closeHotelMonitor').addEventListener('click',()=>document.getElementById('hotelMonitorBackdrop').classList.remove('open'));
     document.getElementById('hotelMonitorBackdrop').addEventListener('click',event=>{if(event.target.id==='hotelMonitorBackdrop')event.currentTarget.classList.remove('open');});
@@ -4269,7 +4614,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     const renderNpcListWithoutCurrentPlayer=renderNpcList;
     renderNpcList=()=>{if(!game.player)return renderNpcListWithoutCurrentPlayer();const residents=game.npcs;game.npcs=residents.filter(person=>String(person.id)!=='player');try{renderNpcListWithoutCurrentPlayer();}finally{game.npcs=residents;}};
     const renderAllWithoutCurrentPlayer=renderAll;
-    renderAll=()=>{renderAllWithoutCurrentPlayer();if(!game.player)return;document.querySelectorAll('#npcList .npc-row,#contactList .npc-row').forEach(row=>{if(String(row.dataset.id)==='player')row.remove();});const residents=game.npcs.filter(person=>person.alive&&String(person.id)!=='player');document.getElementById('groupCount').textContent=`${residents.length} 人 · ${residents.filter(person=>person.gender==='男').length} 男 / ${residents.filter(person=>person.gender==='女').length} 女`;};
+    renderAll=()=>{renderAllWithoutCurrentPlayer();if(!game.player)return;document.querySelectorAll('#npcList .npc-row,#contactList .npc-row').forEach(row=>{if(String(row.dataset.id)==='player')row.remove();});updateGroupCountText();};
     function sanitizeUnprovenPlayerChildren() {
       const playerId='player';
       const pendingChildIds=new Set((game.pendingBirths||[]).map(pending=>pending&&pending.child?String(pending.child.id):''));
@@ -4454,7 +4799,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       });
       const residents=game.npcs.filter(npc=>npc.alive&&(npc.district||'中宫')===game.activeDistrict);
       const groupCount=document.getElementById('groupCount');
-      if(groupCount)groupCount.textContent=`${residents.length} 人 · ${residents.filter(npc=>npc.gender==='男').length} 男 / ${residents.filter(npc=>npc.gender==='女').length} 女`;
+      if(groupCount)updateGroupCountText();
       const label=document.getElementById('districtLabel');
       if(label)label.textContent=game.activeDistrict;
     }
@@ -4678,6 +5023,13 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         recordAffairDiaries(affairText,'婚姻出轨',[carrier,royalMother,spouse].filter(Boolean),spouse||null);
       }
     }
+    /* 撤销「其实没发生」的怀孕传闻：基座先按「女方可能怀孕」写了一笔日记，
+       权柄女路线判定该笔作废时必须一起清掉，否则日记里会留下假的怀孕记录。 */
+    function dropUnhappenedPregnancyRumor(person) {
+      const pattern=/温存了一番，现在可能已经怀孕了/;
+      if(person&&Array.isArray(person.npcDiary))person.npcDiary=person.npcDiary.filter(entry=>!pattern.test(String(entry&&entry.text||'')));
+      Object.keys(game.diary||{}).forEach(key=>{game.diary[key]=(game.diary[key]||[]).filter(text=>!pattern.test(String(text||'')));});
+    }
     const finalRoyalNpcIntimacy=tryNpcIntimacy;
     tryNpcIntimacy=(first,second,relation,reciprocal)=>{
       const target=getPregnancyTarget(first,second);
@@ -4686,7 +5038,10 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       const defaultPregnant=!!defaultTarget.pregnant;
       const result=finalRoyalNpcIntimacy(first,second,relation,reciprocal);
       if(result&&target&&target!==defaultTarget&&initiator.gender==='女'&&hasRoyalAuthority(initiator)){
-        if(!defaultPregnant&&defaultTarget.pregnancyFather===initiator&&defaultTarget.lastBirthKey!==currentKey()){defaultTarget.pregnant=false;defaultTarget.pregnancyFather=null;clearPregnancySnapshot(defaultTarget);}
+        /* 基座那句「女方怀上」对权柄女是错的：怀孕必须落在男方（target）身上。
+           基座写的是 pregnancyFather=男方（target），不是权柄女本人（initiator）——
+           旧条件写成 ===initiator 永远不成立，于是撤销不了：权柄女自己怀上、男方反而怀不上。 */
+        if(!defaultPregnant&&defaultTarget.pregnancyFather&&(defaultTarget.pregnancyFather===target||defaultTarget.pregnancyFather===initiator)&&defaultTarget.lastBirthKey!==currentKey()){defaultTarget.pregnant=false;defaultTarget.pregnancyFather=null;clearPregnancySnapshot(defaultTarget);dropUnhappenedPregnancyRumor(defaultTarget);dropUnhappenedPregnancyRumor(target);}
         if(!target.pregnant&&target.age>=18&&target.age<60&&target.lastBirthKey!==currentKey()&&Math.random()<getPregnancyChance(target)){target.pregnant=true;target.pregnancyMonths=9;target.pregnancyFather=initiator;target.pregnancyRoyalAuthority=true;target.pregnancyCarrier=initiator;stampPregnancyGenotype(target,target.id,initiator.id);applyRoyalMalePregnancyDiary(target,initiator);}
       }
       return result;
@@ -4700,8 +5055,9 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       document.querySelectorAll('#npcList .npc-row, #contactList .npc-row').forEach(row=>{
         const npc=game.npcs.find(item=>String(item.id)===String(row.dataset.id));
         const actions=row.querySelector('.npc-actions');
-        if(!npc||!actions||Number(npc.age)<18)return;
-        if(npc.gender===game.player.gender){actions.querySelector('[data-action="flirt"]')?.remove();return;}
+        if(!npc||!actions)return;
+        /* 未成年主控 / 未成年居民 / 同性：一律不给「调情」按钮（未成年主控时还要把已存在的按钮摘掉） */
+        if(Number(game.player.age)<18||Number(npc.age)<18||npc.gender===game.player.gender){actions.querySelector('[data-action="flirt"]')?.remove();return;}
         if(actions.querySelector('[data-action="flirt"]'))return;
         const button=document.createElement('button');button.dataset.action='flirt';button.textContent='调情 -2';actions.prepend(button);
       });
@@ -4738,7 +5094,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     const genderAwareBaseRenderNpcRow=renderNpcRow;
     renderNpcRow=npc=>{
       const row=genderAwareBaseRenderNpcRow(npc);
-      if(game.player?.gender!=='女'||npc?.gender!=='男'||npc.alive===false||Number(npc.age)<18)return row;
+      if(game.player?.gender!=='女'||npc?.gender!=='男'||npc.alive===false||Number(npc.age)<18||Number(game.player?.age||0)<18)return row;
       const actions=row.querySelector('.npc-actions');
       if(!actions)return row;
       if(String(game.player.spouseId||'')===String(npc.id))actions.querySelector('[data-action="propose"]')?.remove();
@@ -5323,8 +5679,8 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     const privateChildParentageFinishBirthDecision=finishBirthDecision;
     finishBirthDecision=(accepted,givenName='')=>{const result=privateChildParentageFinishBirthDecision(accepted,givenName);recordWorldPrivateChildParentageDiaries();return result;};
     /* ===== 圣女遗传库 =====
-       ① 圣女遗传库（脸 / 眼睛 / 眉毛 / 鼻子 / 嘴巴 / 发型 / 发饰 / 服饰 / 面纹）对圣女的母系直系后代「开放」，不是强制遗传：
-          五官恒定用圣女库（脸、眼、眉、鼻、嘴 —— 血脉一眼可辨）；
+       ① 圣女遗传库（脸 / 眉毛 / 鼻子 / 嘴巴 / 发型 / 发饰 / 服饰 / 面纹）对圣女的母系直系后代「开放」，不是强制遗传：
+          五官恒定用圣女库（脸、眉、鼻、嘴 —— 血脉一眼可辨；眼睛永远是「眼眶 + 眼白 + 虹膜」三层整栈，不占专属素材）；
           发型与配饰是随机抽签 —— 发饰 / 项链 / 面纹 / 发型 四项里随机抽 0~4 项，每项 65% 抽到圣女库原图、
           35% 变异成通用库素材（配饰库发饰/项链/面纹 count 为 0 → 该槽不显示；发型变异 → 换成随机一款普通女发型）。
           所以「圣女发型」是随机头发时有机会随机到的，不是每个后代都有。
@@ -5415,8 +5771,8 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       const youthGene=Math.max(0,youthGeneOf(mother)+youthGeneOf(father))/2;
       child.youthGeneStrength=youthGene;
       child.eternalYouthStrength=youthGene;
-      /* 配色（发色）与肤色随父亲：父亲有值就直接用父亲的值 */
-      ['hairHue','hairLightness','hairSaturation','skinLightness'].forEach(key=>{ if(colourParent&&Number.isFinite(Number(colourParent[key])))child[key]=Number(colourParent[key]); });
+      /* 配色（发色 / 瞳色）与肤色随父亲：父亲有值就直接用父亲的值 */
+      ['hairHue','hairLightness','hairSaturation','eyeHue','eyeLightness','eyeSaturation','skinLightness'].forEach(key=>{ if(colourParent&&Number.isFinite(Number(colourParent[key])))child[key]=Number(colourParent[key]); });
       saint.firstDaughterBorn=true;
       return child;
     }
@@ -5448,17 +5804,19 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       if(!Array.isArray(inherited)||!inherited.length)return wrap;
       if(npc.avatar.saint||npc.avatar.saintFull||Number(npc.age)<=15)return wrap;
       /* 发型由基座 createAvatar 以「替换底层头发」的方式绘制，这里只叠配饰，避免出现两层头发 */
-      inherited.forEach(entry=>{ if(!entry||entry.slot==='hair')return; const image=document.createElement('img');image.src=entry.fromGeneral?`${entry.file}.png`:`${saintParts.dir}/${entry.file}.png`;image.alt='';insertLineageOverlay(wrap,image,entry.slot);});
+      inherited.forEach(entry=>{ if(!entry||entry.slot==='hair')return; const image=document.createElement('img');image.src=entry.fromGeneral?`${entry.file}.png`:`${saintParts.dir}/${entry.file}.png`;image.alt='';image.onerror=()=>{image.remove();};insertLineageOverlay(wrap,image,entry.slot);});
       return wrap;
     };
     const saintLineageProcessResidents=processResidents;
     processResidents=()=>{saintLineageProcessResidents();normalizeSaintLineageTraits();};
     /* ===== 信徒（圣骑士血脉）=====
        与圣女的「神谕」对称：它本身只是「遗传标记」，会沿父系直系后代传递；
-       同时给男性后代「开放」圣骑士遗传库 —— 五官恒定用圣骑士库（脸/眼/眉/鼻/嘴，血脉一眼可辨），
-       发型 / 发饰随机抽签：每项 65% 用圣骑士库原图、35% 变异成通用男素材（配饰库发饰 count 为 0 → 该槽不显示）。 */
+       同时给男性后代「开放」圣骑士遗传库 —— 五官（脸型 / 眼眶 / 眉毛 / 鼻子 / 嘴）与普通居民同一套遗传规则：
+       随机 1~2 项变异，变异＝在【通用库 ∪ 圣骑士专属库】里随机（可能抽回专属库原图、看着没变），其余项恒用圣骑士库；
+       眼睛三层整栈 = 圣骑士眼眶（或变异后的通用男眼眶）+ 通用眼白 + 通用虹膜。
+       发型 / 发饰另按抽签：每项 65% 用圣骑士库原图、35% 变异成通用男素材（配饰库发饰 count 为 0 → 该槽不显示）。 */
     const BELIEVER_MUTATION_CHANCE=.35;
-    const BELIEVER_LINEAGE_VERSION=3;
+    const BELIEVER_LINEAGE_VERSION=4;
     /* 发饰：不参与发型抽签，而是独立抽 0~1 个（BELIEVER_ACCESSORY_CHANCE 概率出现 1 个） */
     const BELIEVER_ACCESSORY_CHANCE=.5;
     const BELIEVER_ACCESSORY_FILE='圣骑士发饰';
@@ -5499,6 +5857,23 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       }
       return inherited;
     }
+    /* 圣骑士血脉「五官」随机池：专属库原图 + 通用库候选。
+       眼眶的专属素材是 圣骑士遗传库/圣骑士眼眶10，通用素材在 男通用眼睛/ 下。
+       与普通居民同一套规则：随机 1~2 项变异，「变异」＝在这个池子里等概率抽一个
+       —— 所以可能抽回专属库原图（看起来没变），也可能换成通用素材；其余项恒定用专属库。 */
+    const BELIEVER_FEATURE_KEYS=['face','eyes','brows','nose','mouth'];
+    function paladinExclusiveFeatureFile(key){ return key==='eyes' ? paladinFile('圣骑士眼眶') : paladinFile(PALADIN_FEATURE_FILES[key]); }
+    function paladinGeneralFeaturePool(key){
+      if(key==='eyes') return { prefix:'男通用眼睛/男的眼眶', count:avatarParts.eyes.count };
+      const part=avatarParts[key];
+      return part?{ prefix:part.prefix, count:part.count }:null;
+    }
+    function rollBelieverFeaturePick(key){
+      const pool=[{ file:paladinExclusiveFeatureFile(key), fromGeneral:false }];
+      const general=paladinGeneralFeaturePool(key);
+      for(let index=1;index<=(general&&general.count||0);index++) pool.push({ file:`${general.prefix}${index}`, fromGeneral:true });
+      return pool[Math.floor(Math.random()*pool.length)];
+    }
     function applyBelieverLineageAppearance(person){
       if(!person||person.gender!=='男'||!person.avatar)return;
       if(person.paladin===true){person.believer=true;person.skinLightness=BELIEVER_SKIN_LIGHTNESS;return;}
@@ -5506,12 +5881,14 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       person.believer=true;
       person.skinLightness=BELIEVER_SKIN_LIGHTNESS;
       person.avatar.paladinFeatures=true;
-      /* 五官：恒定用圣骑士库（脸/眼/眉/鼻/嘴，血脉一眼可辨）——与上面注释一致，不做变异；
-         变异只发生在发型 / 发饰槽位。 */
+      /* 五官（脸型 / 眼眶 / 眉毛 / 鼻子 / 嘴）与普通居民同一套变异规则：随机 1~2 项变异，
+         变异＝在【通用库 ∪ 圣骑士专属库】里等概率抽一个（可能抽回专属库原图），其余项恒用专属库。 */
       if(!person.avatar.paladinFeaturePicks||person.avatar.paladinFeaturePicksVersion!==BELIEVER_LINEAGE_VERSION){
-        const fixedPicks={};
-        LINEAGE_FEATURE_KEYS.forEach(key=>{fixedPicks[key]={ file:paladinFile(PALADIN_FEATURE_FILES[key]), fromGeneral:false };});
-        person.avatar.paladinFeaturePicks=fixedPicks;
+        const mutated=[];
+        while(mutated.length<randomBetween(1,2)){const key=randomItem(BELIEVER_FEATURE_KEYS);if(!mutated.includes(key))mutated.push(key);}
+        const picks={};
+        BELIEVER_FEATURE_KEYS.forEach(key=>{ picks[key]=mutated.includes(key)?rollBelieverFeaturePick(key):{ file:paladinExclusiveFeatureFile(key), fromGeneral:false }; });
+        person.avatar.paladinFeaturePicks=picks;
         person.avatar.paladinFeaturePicksVersion=BELIEVER_LINEAGE_VERSION;
       }
       if(!person.avatar.paladinLineage||person.avatar.paladinLineageVersion!==BELIEVER_LINEAGE_VERSION){
@@ -5524,7 +5901,24 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         person.avatar.paladinAccessory=Math.random()<BELIEVER_ACCESSORY_CHANCE?{file:BELIEVER_ACCESSORY_FILE,fromGeneral:false}:null;
       }
     }
-    function normalizeBelieverTraits(){ getAllPeople().forEach(person=>{if(isPaladinPerson(person))person.believer=true;applyBelieverLineageAppearance(person);}); }
+    function normalizeBelieverTraits(){
+      getAllPeople().forEach(person=>{
+        if(isPaladinPerson(person)){person.believer=true;return;}
+        const hasBelieverBlood=person&&person.gender==='男'&&isBelieverMaleDescendant(person);
+        if(!hasBelieverBlood&&person&&person.avatar){
+          delete person.avatar.paladinFeatures;
+          delete person.avatar.paladinFeaturePicks;
+          delete person.avatar.paladinFeaturePicksVersion;
+          delete person.avatar.paladinLineage;
+          delete person.avatar.paladinLineageVersion;
+          delete person.avatar.paladinAccessory;
+          delete person.avatar.paladinAccessoryVersion;
+          if(person.believer===true)delete person.believer;
+          return;
+        }
+        applyBelieverLineageAppearance(person);
+      });
+    }
     const believerLineageChildFactory=makeChildNpc;
     makeChildNpc=(mother,father,childGender)=>{const child=believerLineageChildFactory(mother,father,childGender);applyBelieverLineageAppearance(child);return child;};
     /* 出生即写死基因型父母：孕育者怀孕时记下的 father/mother（或怀孕当时的那位生父）直接抄进孩子档案，
@@ -5538,10 +5932,10 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       if(!avatar||avatar.paladin||Number(npc.age)<=15)return wrap;
       const inherited=Array.isArray(avatar.paladinLineage)?avatar.paladinLineage:[];
       /* 发型由基座 createAvatar 以「替换底层头发」的方式绘制，这里只叠非发型槽位 */
-      inherited.forEach(entry=>{ if(!entry||entry.slot==='hair')return; const image=document.createElement('img');image.src=entry.fromGeneral?`${entry.file}.png`:`${paladinParts.dir}/${entry.file}.png`;image.alt='';wrap.appendChild(image);});
+      inherited.forEach(entry=>{ if(!entry||entry.slot==='hair')return; const image=document.createElement('img');image.src=entry.fromGeneral?`${entry.file}.png`:`${paladinParts.dir}/${entry.file}.png`;image.alt='';image.onerror=()=>{image.remove();};wrap.appendChild(image);});
       /* 发饰：独立抽到的 0~1 个，叠在最上层 */
       const accessory=avatar.paladinAccessory;
-      if(accessory){const image=document.createElement('img');image.src=accessory.fromGeneral?`${accessory.file}.png`:`${paladinParts.dir}/${accessory.file}.png`;image.alt='';wrap.appendChild(image);}
+      if(accessory){const image=document.createElement('img');image.src=accessory.fromGeneral?`${accessory.file}.png`:`${paladinParts.dir}/${accessory.file}.png`;image.alt='';image.onerror=()=>{image.remove();};wrap.appendChild(image);}
       return wrap;
     };
     const believerLineageProcessResidents=processResidents;
