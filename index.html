@@ -3060,7 +3060,10 @@ const playerIsParent=(child.parentIds||[]).some(id=>String(id)==='player')||Stri
       return chosen;
     }
     function pickDailyNeighbor(npc,residents){
-      const others=(residents||[]).filter(person=>person&&person!==npc&&person.alive!==false&&String(person.id)!=='player'&&Number(person.age)>=18);
+      /* 跨辖区的居民彼此见不到面：这位「邻居」只能从**同一个辖区**里抽。
+         否则被主控分开到两个宫位的夫妻 / 恋人还能靠日常小事互相涨好感度（那条路绕过了
+         districtAwareSocializePair / districtAwareTryNpcIntimacy 的辖区闸门）。 */
+      const others=(residents||[]).filter(person=>person&&person!==npc&&person.alive!==false&&String(person.id)!=='player'&&Number(person.age)>=18&&sameDistrict(npc,person));
       return others.length?randomItem(others):null;
     }
     /* 只动这两位居民之间的好感度（0~100）；主控那一份数字一动不动 */
@@ -4534,6 +4537,10 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
        ② 亲热本身只要求成年（18+，见 tryNpcIntimacy），不再有 50 岁的上限；
           但 55 岁以上每次亲热有「牡丹花下」的猝死概率（见 ELDER_INTIMACY_DEATH_RATES）。
        ③ 只统计存活的孩子（person.children 里 alive!==false 的），夭折、流产、难产没保住的孩子不占名额，可以再生。
+          而且只统计「这个人**亲自孕育出生**」的那些（见 getBearingChildrenCount）：
+          他让别人怀上 / 别人替他生下来的孩子不占他本人的孕育名额 —— 男孕（王之权柄）最明显，
+          一个和妻子生过 4 个孩子的男人，他自己的额度一点没动（前 3 胎照样 20%）；
+          反过来，权柄女名下那些「由男方代孕生下来」的孩子也不占她的额度。
        ④ 想调松紧只改下面两张表：PARITY_PREGNANCY_FACTORS（每胎系数）、PARITY_BIRTH_SPACING_MONTHS（每胎间隔）；
           ELDER_INTIMACY_DEATH_RATES 控制老年猝死概率。 */
     /* 「活孩子上限＝5」由下面 PARITY_PREGNANCY_FACTORS 那张表在执行（存活 5 个起系数 0）。
@@ -4541,6 +4548,24 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
        给个够大的数就等于那句话不再出现（按你的要求整句删掉）。 */
     const CHILD_SOFT_LIMIT = 99;
     const getLivingChildrenCount = person => (person && person.children || []).filter(child => child && child.alive !== false).length;
+    /* —— 「亲自孕育出生的孩子数」（孕育额度的唯一口径）——
+       孕育名额永远跟「谁亲自怀孕」走：他 / 她自己生过几个，才算占掉几个。
+       · 男孕（王之权柄）：男方名下的孩子里，只有**他亲自怀胎生下来的**那几个算数；
+         他和妻子生的 4 个孩子（他在这几个孩子里只是「父亲」）不占他自己的孕育名额，
+         所以他还能照常给别人（比如主控）生 —— 两边互不影响。
+       · 正常女孕：孩子由母亲生育，计数与以前一致（不会因为这次改动而变少）。
+       孕育者判定：孩子身上的 gestationalParentId（男孕出生时写入，见 makeChildNpc 的权柄包装）优先；
+       没写时才看母亲位（makeChildNpc 里 motherId＝那次生育的人）。 */
+    function childBearingParentId(child){
+      if(!child)return '';
+      const gestational=child.gestationalParentId;
+      if(gestational!==null&&gestational!==undefined&&String(gestational)!==''&&String(gestational)!=='null')return String(gestational);
+      return String(child.motherId||child.biologicalMotherId||'');
+    }
+    function getBearingChildrenCount(person){
+      if(!person)return 0;
+      return ((person.children)||[]).filter(child=>child&&child.alive!==false&&childBearingParentId(child)===String(person.id)).length;
+    }
     const getAgePregnancyChance = person => { const age = Number(person && person.age) || 0; return age >= 60 ? 0 : age >= 56 ? .03 : .2; };
     /* 胎次系数：下标＝现有存活孩子数（0/1/2 → 第 1~3 胎 ×1；3 → 第 4 胎 ×0.4；4 → 第 5 胎 ×0.15；5 个及以上 ×0） */
     const PARITY_PREGNANCY_FACTORS = [1, 1, 1, .4, .15];
@@ -4570,7 +4595,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       if (Number(person.birthCount || 0) >= MAX_BIRTHS_PER_WOMAN) return 0;
       const base = getAgePregnancyChance(person);
       if (base <= 0) return 0;
-      const count = getLivingChildrenCount(person);
+      const count = getBearingChildrenCount(person);   /* 只算「他/她自己生过」的存活孩子：当父亲生的那些不占额度 */
       const value = base * getChildCountPregnancyFactor(count) * getBirthSpacingFactor(person, count);
       /* 主控「插足」通道里的那一次亲热：只要目标还没因为生育次数掉孕率（＝前 3 胎以内，胎次系数仍是 1），
          受孕率保底 30%。已经掉档（第 4 胎起 ×0.4 / 第 5 胎 ×0.15）以及 10 胎硬闸 / 60 岁以上，照旧按原值。
@@ -4712,6 +4737,9 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       if(isFatedReservedForOther(mother,father.id)||isFatedReservedForOther(father,mother.id))return;
       /* 命定二人（圣女×圣骑士）：结婚只由「成年 + 同辖区」的誓约流程决定，不走奉子成婚 */
       if(isFatedPair(mother,father))return;
+      /* 分居（被主控分到不同辖区）：两个人连面都见不到，不会在这样的状态下奉子成婚。
+         怀上时他们必然同辖区，但生产前被拆开的情形要在这里拦住。 */
+      if(!sameDistrict(mother,father))return;
       if(record.firstChild&&!mother.married&&!father.married){
         const motherRelation=getNpcRelation(mother,father);
         const fatherRelation=getNpcRelation(father,mother);
@@ -8941,6 +8969,16 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       game.altarFedTotal=0;
       game.altarSpawnedBatches=0;
       game.altarBornPending=null;
+      /* 新一局：丧夭夭那次「来投」连同驱逐台账一起清零。
+         ⚠️ 这里原来没清 —— 上一局只要判定过（哪怕因为「十年驱逐不到 15 人」翻篇），
+         zombieOfferDone 就一直是 true，重开一局后她在 110 年**永远不会来**；
+         expulsionLogSeen 带着旧 id 也会压掉新局的驱逐记录，让十年计数永远凑不够 15。 */
+      game.zombieOfferDone=false;
+      game.zombieDeclined=false;
+      game.zombieOfferOpen=false;
+      game.zombieOfferPending=false;
+      game.expulsionLog=[];
+      game.expulsionLogSeen={};
       refreshSacrificeButtons();
       game.points=maxActionPoints();
       updatePlayerTraitCard();
@@ -9037,9 +9075,15 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       const currentStart=expulsionWindowStart(game.year);
       const currentCount=countExpulsionsInWindow(currentStart,currentStart+EXPULSION_WINDOW_YEARS);
       /* 只显示「当前这十年」：一进入下一个十年窗口，这里就换成新窗口的数字、旧记录不再显示
-         （所以看起来就是"每 10 年刷新一次"。历史记录仍留在 game.expulsionLog 里，只用于阈值判定） */
+         （所以看起来就是"每 10 年刷新一次"。历史记录仍留在 game.expulsionLog 里，只用于阈值判定）。
+         例外：110 年之前（含 110 年）额外把「100–109」那一行列出来 —— 丧夭夭看的就是那十年，
+         只看「进行中」那一行会让玩家以为「才驱逐 0 人」而不知道她到底会不会来。 */
+      const firstWindowNote=(Number(game.year)<=ZOMBIE_OFFER_YEAR&&!game.zombieOfferDone&&!game.zombieDeclined)
+        ?`<div class="row"><span>100–109 年（满 ${ZOMBIE_JOIN_THRESHOLD} 人她才会来）</span><span>驱逐 ${countExpulsionsInWindow(100,100+EXPULSION_WINDOW_YEARS)} 人</span></div>`
+        :'';
       box.innerHTML=`<h3>驱逐统计 · 每 ${EXPULSION_WINDOW_YEARS} 年刷新一次</h3>`
         +`<div class="row current"><span>${currentStart}–${currentStart+EXPULSION_WINDOW_YEARS-1} 年（进行中）</span><span>驱逐 ${currentCount} 人</span></div>`
+        +firstWindowNote
         +`<div class="note">十年之内被驱逐的人都会被记在这里。据说，驱逐得太多，会引来不该来的东西。</div>`;
     }
     /* ===== 丧夭夭来投（只在 110 年出现一次；条件是 100–109 这十年驱逐 ≥ 15 人）===== */
@@ -9183,6 +9227,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         recordZombieArrivalOutrage();
       }
       game.zombieOfferDone=true;   /* 同意之后不会再有第二次来投 */
+      game.zombieOfferPending=false;
       normalizeZombieLineageTraits();
       renderAll();
       return zombie;
@@ -9198,25 +9243,36 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     function zombieOfferDecline(){
       game.zombieDeclined=true;
       game.zombieOfferDone=true;   /* 拒绝就永远不会有第二次 */
+      game.zombieOfferPending=false;
       const promised=(game.player&&game.player.name)||'主控';
       const text=`门口那个自称丧夭夭的女人等了很久，${promised}没有开门。天亮时她走了，再也没回来过。`;
       diaryEventTypes.set(normalizePlayerNameText(text),'日常');
       addDiary(text);
       renderAll();
     }
-    /* 触发：她**只在 110 年这一年里出现一次**（＝100–109 这个十年窗口结束的时候）。
-       过了 110 年就再也不会出现 —— 哪怕后来那十年驱逐的人更多。
-       110 年当月若有别的弹窗开着，就等到下个月再看（同一年内多次检查是安全的：
-       100–109 窗口的人数在这一年里不会变）。 */
+    /* 触发：她**只在 110 年这一年里露一次面**（＝100–109 这个十年窗口结束的时候）。
+       分两步走，免得「明明该来却永远不来」：
+         ① 挂号：110 年这一年内只要摸到门（100–109 驱逐 ≥ 15 人）就先记一个 zombieOfferPending ——
+            这一步**不看有没有弹窗**。原来只有一句「有弹窗就 return」，于是玩家一次点「转年」
+            跑完 12 个月（中间必然被「认领孩子 / 入区申请」这类弹窗顶住）时，110 年的 12 次检查
+            全被挡掉，转完这一年她就再也不会出现了。
+         ② 上菜：挂上号之后，等一个「没有别的弹窗挡着」的时机弹她 —— 转月会试、关掉弹窗后的重绘也会试
+            （见下面的 renderAll 收口），所以只要挂上号，她一定会来。
+       挂号之前先判「翻篇」：十年窗口没到 15 人、或者她已经在辖区里 ⇒ 这事永远不会再提。 */
     function maybeOpenZombieOfferEvent(){
       if(!game.player||game.player.alive===false)return;
       if(game.zombieOfferDone||game.zombieDeclined)return;
-      if(Number(game.year)!==ZOMBIE_OFFER_YEAR)return;
-      if(document.querySelector('.modal-backdrop.open'))return;
-      const count=countExpulsionsInWindow(100,100+EXPULSION_WINDOW_YEARS);
-      if(count<ZOMBIE_JOIN_THRESHOLD){game.zombieOfferDone=true;return;}   /* 第一次十年没到 15 人 → 这事就翻篇了 */
-      if(game.npcs.some(isZombiePerson)){game.zombieOfferDone=true;return;}
-      openZombieOfferModal(count,100);
+      if(!game.zombieOfferPending){
+        if(Number(game.year)!==ZOMBIE_OFFER_YEAR)return;
+        const windowCount=countExpulsionsInWindow(100,100+EXPULSION_WINDOW_YEARS);
+        if(windowCount<ZOMBIE_JOIN_THRESHOLD){game.zombieOfferDone=true;return;}   /* 第一次十年没到 15 人 → 这事就翻篇了 */
+        if(game.npcs.some(isZombiePerson)){game.zombieOfferDone=true;return;}
+        game.zombieOfferPending=true;
+        game.zombieOfferCount=windowCount;
+      }
+      if(game.npcs.some(isZombiePerson)){game.zombieOfferPending=false;game.zombieOfferDone=true;return;}
+      if(document.querySelector('.modal-backdrop.open'))return;   /* 有别的弹窗 → 等下一次（转月 / 重绘）再弹 */
+      openZombieOfferModal(Number(game.zombieOfferCount)||countExpulsionsInWindow(100,100+EXPULSION_WINDOW_YEARS),100);
     }
     /* 每月：登记驱逐 → 结算十年窗口 → 评估「丧夭夭来投」→ 刷新统计列表 */
     const expulsionAwareAdvanceMonth=advanceMonth;
@@ -9226,12 +9282,16 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       maybeOpenZombieOfferEvent();
       renderExpulsionStats();
     };
-    /* 每次重绘：列表跟着当前数据走（刚驱逐完就能看到数字变大） */
+    /* 每次重绘：列表跟着当前数据走（刚驱逐完就能看到数字变大）；
+       顺带再试一次「丧夭夭来投」—— 玩家把挡在前面的弹窗关掉后（认领孩子、入区申请、个人主页…），
+       这一次重绘就会把她补上，不用等下一次转月。 */
     const expulsionAwareRenderAll=renderAll;
-    renderAll=()=>{ expulsionAwareRenderAll(); renderExpulsionStats(); };
+    renderAll=()=>{ expulsionAwareRenderAll(); renderExpulsionStats(); maybeOpenZombieOfferEvent(); };
     /* ===== 献祭（只在辖区里存在灰皮肤的「亡者」时出现）=====
        · 按钮挂在业主群 / 联系人的批量工具栏上（有复选框的那一排）；
        · **无消耗**（不花行动点）；血亲、未成年都可以献祭；**亡者（灰皮肤）不能献祭**；
+       · **固定 NPC 本人**（圣女 / 圣骑士 / 丧夭夭 / 猎人）也不能 —— 只有他们「本人」不行；
+         他们的孩子照常可以喂（圣女库完全体的大女儿、圣女血脉的女儿、信徒儿子、猎人的儿子…）；
        · 一个月最多献祭 SACRIFICE_MONTHLY_LIMIT 人；
        · 效果和驱逐一样算「死亡」（alive=false、死亡原因「被献祭」），写特殊文案并记进日记。 */
     const SACRIFICE_MONTHLY_LIMIT=10;
@@ -9239,11 +9299,13 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       if(!person||String(person.id)==='player'||person.alive===false)return false;
       if(isZombiePerson(person)||isZombieGreySkin(person))return false;   /* 亡者不能献祭 */
       if(person.altarBorn===true)return false;                            /* 祭坛吐出来的人：消化不了，不能再投喂 */
-      /* 固定 NPC（圣女 / 圣骑士 / 丧夭夭 / 猎人）：能力太强，祭坛吃不下 */
+      /* 固定 NPC **本人**（圣女 / 圣骑士 / 丧夭夭 / 猎人）：能力太强，祭坛吃不下。
+         这里判的是「本人」而不是「这条血脉」—— 判血脉的 isReplacementFixedNpc 会把
+         avatar.saintFull（圣女库完全体的大女儿）也算进去，那是孩子，孩子是可以喂的。 */
       if(typeof isAltarOverpoweredPerson==='function'&&isAltarOverpoweredPerson(person))return false;
       return true;   /* 血亲 / 未成年都在可献祭范围里 */
     }
-    /* 祭坛「消化不了」的那类人：它自己吐出来的，加上能力太强的固定 NPC */
+    /* 祭坛「消化不了」的那类人：它自己吐出来的，加上能力太强的固定 NPC 本人 */
     function isAltarIndigestible(person){
       if(!person)return false;
       if(person.altarBorn===true)return true;
@@ -9341,10 +9403,10 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       const selected=getSelectedInToolbar(toolbar);
       const undeadSelected=selected.filter(isUndeadPerson);
       const indigestibleSelected=selected.filter(isAltarIndigestible);
-      const overpoweredSelected=selected.filter(person=>typeof isAltarOverpoweredPerson==='function'&&isAltarOverpoweredPerson(person));
-      /* 勾了亡者 / 勾了祭坛吐出来的人 / 勾了固定 NPC：先给出对应回应，再继续处理能献祭的那些 */
-      if(overpoweredSelected.length)showActionNotice(ALTAR_OVERPOWERED_REFUSAL,null,'',3200,button);
-      else if(indigestibleSelected.length)showActionNotice('消化不了这个',null,'',3200,button);
+      /* 勾了亡者 / 勾了祭坛吐出来的人：先给出对应回应，再继续处理能献祭的那些。
+         勾了固定 NPC 本人（圣女 / 圣骑士 / 丧夭夭 / 猎人）**一句提示都不给** ——
+         他们照样喂不进去（isSacrificablePerson 会把他们滤掉），只是祭坛不出声。 */
+      if(indigestibleSelected.length)showActionNotice('消化不了这个',null,'',3200,button);
       else if(undeadSelected.length)showActionNotice(SACRIFICE_UNDEAD_REFUSAL,null,'',3200,button);
       const candidates=selected.filter(isSacrificablePerson);
       if(!candidates.length){
@@ -9438,10 +9500,10 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       const input=(people||[]);
       const hasUndeadInput=input.some(isUndeadPerson);
       const hasIndigestibleInput=input.some(isAltarIndigestible);
-      const hasOverpoweredInput=input.some(person=>typeof isAltarOverpoweredPerson==='function'&&isAltarOverpoweredPerson(person));
-      if(hasOverpoweredInput)showActionNotice(ALTAR_OVERPOWERED_REFUSAL);             /* 固定 NPC：能力太强，吃了会撑坏 */
-      else if(hasIndigestibleInput)showActionNotice('消化不了这个');                   /* 祭坛吐出来的：消化不了 */
-      else if(hasUndeadInput)showActionNotice(SACRIFICE_UNDEAD_REFUSAL);              /* 投喂亡者：祭坛的回应 */
+      /* 固定 NPC 本人（圣女 / 圣骑士 / 丧夭夭 / 猎人）喂不进去，但**不提示**（祭坛不出声）；
+         这里只保留另外两条回应：祭坛吐出来的人 / 亡者。 */
+      if(hasIndigestibleInput)showActionNotice('消化不了这个');                   /* 祭坛吐出来的：消化不了 */
+      else if(hasUndeadInput)showActionNotice(SACRIFICE_UNDEAD_REFUSAL);          /* 投喂亡者：祭坛的回应 */
       const remaining=Math.max(0,SACRIFICE_MONTHLY_LIMIT-Number(game.sacrificeCount||0));
       const targets=input.filter(isSacrificablePerson).slice(0,remaining);
       if(!targets.length){
@@ -11346,6 +11408,8 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     /* 生育判定：只回「不能生育的理由」（短句列表）；能生就返回空列表。
        口径照引擎：血缘 / 成年 / 生育年龄 / 怀孕 / 坐月子 / 流产冷却 / 本月是否已生 /
        10 胎上限 / 5 个存活孩子封顶 / 生育间隔（**间隔对主控不生效**，见下）。
+       「几个存活孩子」一律按 getBearingChildrenCount 算，也就是**孕育者自己生过的**那几个 ——
+       男孕时他当父亲生的孩子不算，免得两头互相挤额度。
        配偶与恋人身份不参与判定，辖区也不看。 */
     function kinshipChildReport(female, male) {
       if (!female || !male || female.gender !== '女' || male.gender !== '男') return null;
@@ -11370,7 +11434,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       if (bornOnes.length) reasons.push(`${bornOnes.map(person => person.name).join('、')}本月已经生过一胎`);
       const birthCap = typeof MAX_BIRTHS_PER_WOMAN === 'number' ? MAX_BIRTHS_PER_WOMAN : 10;
       if (Number(carrier.birthCount || 0) >= birthCap) reasons.push(`${carrier.name}已经生满 ${birthCap} 胎`);
-      const livingChildren = typeof getLivingChildrenCount === 'function' ? getLivingChildrenCount(carrier) : (carrier.children || []).filter(child => child && child.alive !== false).length;
+      const livingChildren = typeof getBearingChildrenCount === 'function' ? getBearingChildrenCount(carrier) : (carrier.children || []).filter(child => child && child.alive !== false).length;
       if (livingChildren >= 5) reasons.push(`${carrier.name}已有 ${livingChildren} 个存活的孩子`);
       /* 生育间隔（居民之间每胎要隔 6 / 30 / 60 个月）：主控亲自上场的那一次亲热会跳过这道间隔
          （见 getBirthSpacingFactor 的 _playerConceptionKey），所以只要这一对里有主控就完全不拦。 */
@@ -12363,12 +12427,21 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
        · 她只要不在中宫，他在哪个宫她一去他转月就跟过去；中宫他进不去
          （只有①来投时她正好在中宫、②那次「放进来一个月」两种例外）。
        · 她生下第一个孩子、还在坐月子 ⇒ 弹出她的请求（把她放进中宫，猎人进不来），转年也不会被吞。
-       · 她进了中宫 ⇒ 他请求「放我进去一个月，我愿意做任何事」；同意则他在中宫待一个月：
+       · **她和他都在中宫**（他获准进来一个月、或玩家手动把他调进来）⇒ 她的请求换成
+         「把猎人赶出中宫」：答应则他的这次探视作废（hunterZhonggongMonths=0）、回巽宫，
+         并且他那半年一次的请求计时从他出宫那一刻重新算；拒绝就一直挂着她这笔账，不会天天弹，
+         等他离开中宫（月度结算）后这笔账清掉，他下次再进来她会再开口。
+       · 她进了中宫、他不在 ⇒ 他每隔半年（HUNTER_ZHONGGONG_ASK_INTERVAL＝6 个月）来请求一次
+         「放我进去一个月，我愿意做任何事」；同意则他在中宫待一个月：
          女控可与他聊天 / 调情 / 亲热，但一律只显示「……」、好感度不变（他不会理你）；亲热有机会让他怀孕。
          日记：「为了见丧夭夭，猎人答应了主控任何要求。」（归到「怀孕」「秘密」两个分类）
+         注意：只要她还待在中宫、他不在中宫，这次被拒绝 / 被答应之后都会**再过 6 个月再来求**，
+         不是「问过一次就永远不问」（老存档里的 hunterZhonggongAnswered 不再参与判定）。
        · 他进了中宫且她也在 ⇒ 前三胎没生完就立刻让她怀孕。 */
     const HUNTER_WEDDING_CHILDREN=3;
     const HUNTER_ZHONGGONG_MONTHS=1;
+    /* 她待在中宫时，他两次「请求进中宫」之间要隔多少个月 */
+    const HUNTER_ZHONGGONG_ASK_INTERVAL=6;
     const HUNTER_MALE_PREGNANCY_CHANCE=.5;
     const HUNTER_FAMILY_LINES={
       revival:name=>`亡者会死亡本来就很荒谬，所以${name}复活了。`,
@@ -12377,8 +12450,14 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       plead:her=>`${her}受够了这个变态的男人。她请求您把她安置到安全的中宫 —— 猎人进不来。`,
       pleadAccept:'把她放进中宫',
       pleadDecline:'再等等',
+      /* 她已经在中宫、猎人也进了中宫 ⇒ 她的请求换成「把他赶出去」 */
+      evictTitle:'丧夭夭的请求',
+      evict:her=>`${her}受够了这个变态的男人。他就待在中宫里，她请求您把他赶出去 —— 她不想再见到他。`,
+      evictAccept:'把猎人赶出中宫',
+      evictDecline:'再等等',
       askTitle:'猎人的请求',
       ask:`他只求您让他进中宫一个月。他愿意做任何事。`,
+      askAgain:`他又站在门外。每隔半年他都会来求一次 —— 让他进中宫一个月，他愿意做任何事。`,
       askAccept:'答应他',
       askDecline:'拒绝',
       hunterDiary:ruler=>`为了见${ZOMBIE_NAME}，猎人答应了${ruler}任何要求。`,
@@ -12437,6 +12516,8 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
           hunter.district=(bride.district&&bride.district!=='中宫')?bride.district:HUNTER_FALLBACK_DISTRICT;
         }
       }
+      /* 他不在中宫 ⇒ 她这次的「把他赶出去」记账清掉：他下次再进来，她会再开口 */
+      if((hunter.district||'中宫')!=='中宫')bride.hunterEvictAskAnswered=false;
       /* 跟随：她不在中宫，他转月就过去（她进了中宫他进不去） */
       if(!visiting&&bride.district&&bride.district!=='中宫'&&hunter.district!==bride.district)hunter.district=bride.district;
       /* 前三胎：同宫位 + 没怀孕 + 不是月子 ⇒ 立刻怀上 */
@@ -12447,7 +12528,14 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       if(document.getElementById('hunterFamilyStyle'))return;
       const style=document.createElement('style');
       style.id='hunterFamilyStyle';
-      style.textContent='#hunterFamilyBackdrop .birth-actions{justify-content:space-between;gap:32px;}';
+      style.textContent='#hunterFamilyBackdrop .birth-actions{justify-content:space-between;gap:32px;}'
+        /* 来求的那位（她＝丧夭夭 / 他＝猎人）：放大头像 + 可点击的名字（与「来投」「求情」两个弹窗同一套观感） */
+        +'#hunterFamilyBackdrop .hunter-family-row{display:flex;align-items:center;gap:12px;margin-bottom:6px;min-height:112px;}'
+        +'#hunterFamilyBackdrop .hunter-family-info{flex:1;min-width:0;}'
+        +'#hunterFamilyBackdrop .hunter-family-avatar{flex:none;transform:scale(1.7);transform-origin:left center;margin:12px 24px 12px 6px;cursor:pointer;}'
+        +'#hunterFamilyBackdrop .hunter-family-name{border:0;background:none;padding:0;margin:0;font:inherit;font-weight:700;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}'
+        +'#hunterFamilyBackdrop .hunter-family-name:hover{opacity:.8;}'
+        +'@media (max-width:700px){#hunterFamilyBackdrop .hunter-family-avatar{transform:scale(1.35);margin:10px 16px 10px 2px;}}';
       document.head.appendChild(style);
     }
     function ensureHunterFamilyBackdrop(){
@@ -12459,7 +12547,7 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       backdrop.id='hunterFamilyBackdrop';
       backdrop.innerHTML='<section class="birth-modal" role="dialog" aria-modal="true" aria-labelledby="hunterFamilyTitle">'
         +'<div class="modal-head"><h2 id="hunterFamilyTitle"></h2></div>'
-        +'<div class="birth-content"><p id="hunterFamilyText"></p>'
+        +'<div class="birth-content"><div id="hunterFamilyText"></div>'
         +'<div class="birth-actions"><button id="hunterFamilyDecline" type="button"></button><button class="primary" id="hunterFamilyAccept" type="button"></button></div></div></section>';
       document.body.appendChild(backdrop);
       document.getElementById('hunterFamilyAccept').addEventListener('click',()=>{ backdrop.classList.remove('open'); hunterFamilyAnswer(true); });
@@ -12469,12 +12557,55 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
     function openHunterFamilyModal(kind){
       const pair=hunterWeddingCouple();
       if(!pair)return;
-      game.hunterFamilyAsk=kind;              /* 'plead'＝她求进中宫；'hunter'＝他求进去一个月 */
+      game.hunterFamilyAsk=kind;              /* 'plead'＝她求进中宫；'evict'＝她求把猎人赶出中宫；'hunter'＝他求进去一个月 */
       const backdrop=ensureHunterFamilyBackdrop();
-      document.getElementById('hunterFamilyTitle').textContent=kind==='plead'?HUNTER_FAMILY_LINES.pleadTitle:HUNTER_FAMILY_LINES.askTitle;
-      document.getElementById('hunterFamilyText').textContent=kind==='plead'?HUNTER_FAMILY_LINES.plead(pair.bride.name):HUNTER_FAMILY_LINES.ask;
-      document.getElementById('hunterFamilyAccept').textContent=kind==='plead'?HUNTER_FAMILY_LINES.pleadAccept:HUNTER_FAMILY_LINES.askAccept;
-      document.getElementById('hunterFamilyDecline').textContent=kind==='plead'?HUNTER_FAMILY_LINES.pleadDecline:HUNTER_FAMILY_LINES.askDecline;
+      const speaker=kind==='hunter'?pair.hunter:pair.bride;  /* 来求的那位（她＝丧夭夭 / 他＝猎人） */
+      const hunter=pair.hunter;
+      const askedBefore=Number(hunter&&hunter.hunterZhonggongAskMonth||0)>0;
+      /* 三档文案：猎人的请求 / 她的请求（安置进中宫）/ 她的请求（把猎人赶出去） */
+      const kindLines=kind==='hunter'
+        ?{title:HUNTER_FAMILY_LINES.askTitle,text:askedBefore?HUNTER_FAMILY_LINES.askAgain:HUNTER_FAMILY_LINES.ask,accept:HUNTER_FAMILY_LINES.askAccept,decline:HUNTER_FAMILY_LINES.askDecline}
+        :kind==='evict'
+        ?{title:HUNTER_FAMILY_LINES.evictTitle,text:HUNTER_FAMILY_LINES.evict(pair.bride.name),accept:HUNTER_FAMILY_LINES.evictAccept,decline:HUNTER_FAMILY_LINES.evictDecline}
+        :{title:HUNTER_FAMILY_LINES.pleadTitle,text:HUNTER_FAMILY_LINES.plead(pair.bride.name),accept:HUNTER_FAMILY_LINES.pleadAccept,decline:HUNTER_FAMILY_LINES.pleadDecline};
+      document.getElementById('hunterFamilyTitle').textContent=kindLines.title;
+      /* 弹窗内容：来求的那位的头像（点击看个人主页）+ 文案。
+         主页用 openProfileAboveModals 顶到最上层，所以关掉主页后这个请求弹窗还在。 */
+      const container=document.getElementById('hunterFamilyText');
+      container.innerHTML='';
+      const row=document.createElement('div');
+      row.className='hunter-family-row';
+      if(speaker){
+        try{
+          const avatar=createAvatar(speaker,true);
+          avatar.classList.add('hunter-family-avatar');
+          avatar.title=`查看${speaker.name}的个人主页`;
+          avatar.addEventListener('click',()=>openProfileAboveModals(speaker));
+          avatar.querySelectorAll('.star').forEach(node=>node.remove());   /* 预览头像不要星标，免得误触 */
+          row.append(avatar);
+        }catch(error){ /* 头像画不出来也不影响弹窗 */ }
+      }
+      const info=document.createElement('div');
+      info.className='hunter-family-info';
+      const paragraph=document.createElement('p');
+      paragraph.style.cssText='margin:0;line-height:1.7;';
+      const lineText=kindLines.text;
+      /* 文案里已经点了名的（她那一句）就不再重复插一个名字 */
+      if(speaker&&!String(lineText).startsWith(String(speaker.name))){
+        const nameButton=document.createElement('button');
+        nameButton.type='button';
+        nameButton.className='hunter-family-name';
+        nameButton.textContent=speaker.name;
+        nameButton.title=`查看${speaker.name}的个人主页`;
+        nameButton.addEventListener('click',()=>openProfileAboveModals(speaker));
+        paragraph.append(nameButton, document.createTextNode('：'));
+      }
+      paragraph.append(document.createTextNode(lineText));
+      info.append(paragraph);
+      row.append(info);
+      container.append(row);
+      document.getElementById('hunterFamilyAccept').textContent=kindLines.accept;
+      document.getElementById('hunterFamilyDecline').textContent=kindLines.decline;
       game.hunterFamilyOpen=true;
       backdrop.classList.add('open');
       let raised=0;
@@ -12498,8 +12629,24 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         try{ renderAll(); }catch(error){ /* 忽略 */ }
         return;
       }
+      if(kind==='evict'){
+        /* 问过就算数：他还赖在中宫也不天天弹；他一离开中宫这笔账就清掉
+           （见 hunterFamilyMonthlyTick），他下次再进来她会再开口。 */
+        bride.hunterEvictAskAnswered=true;
+        if(!accepted)return;
+        hunter.hunterZhonggongMonths=0;                         /* 那一个月的探视直接作废 */
+        hunter.district=HUNTER_FALLBACK_DISTRICT;               /* 他回巽宫（她还在中宫 ⇒ 月度跟随那条不会把他带回来） */
+        hunter.hunterZhonggongAskMonth=monthIndex();            /* 被赶出去之后，他下一次求见从这一刻重新算 6 个月 */
+        const line=`${bride.name}把${hunter.name}从中宫赶了出去。${hunter.name}站在门外，进不来。`;
+        diaryEventTypes.set(normalizePlayerNameText(line),'日常');
+        addNpcDiary(bride,line);
+        addNpcDiary(hunter,line);
+        try{ renderAll(); }catch(error){ /* 忽略 */ }
+        return;
+      }
       if(kind==='hunter'){
-        hunter.hunterZhonggongAnswered=true;
+        hunter.hunterZhonggongAskMonth=monthIndex();            /* 记下这次请求的月份：下一次要隔 6 个月 */
+        hunter.hunterZhonggongAnswered=true;                    /* 只作历史标记，判定不再看它 */
         if(!accepted)return;
         hunter.hunterZhonggongMonths=HUNTER_ZHONGGONG_MONTHS;   /* 只放进中宫一个月 */
         hunter.district='中宫';
@@ -12512,7 +12659,14 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
         try{ hunterTryMakeBridePregnant({hunter,bride},true); }catch(error){ /* 忽略 */ }
       }
     }
-    /* 该弹哪个弹窗：没回答过就一直举着（转年也不会被吞） */
+    /* 该弹哪个弹窗（优先级从高到低）。
+       · 她和他都在中宫 ⇒ 她请求「把他赶出去」（问过就算数，他离开中宫后这笔账清掉；
+         他下次再进来她会再开口）。
+       · 她不在中宫、第一个孩子已经出生 ⇒ 她请求「把她安置到中宫」（问过一次就算数）。
+       · 她在中宫、他不在中宫 ⇒ 他**每隔 6 个月**来求一次（答应 / 拒绝都会重新开始计时），
+         不再有「问过一次就永远不问」那道一次性闸门。
+       注意「他求进中宫」那一档加了 `hunter.district!=='中宫'`：他已经被（玩家手动）放进中宫时
+       不会反过来求「让我进中宫」。 */
     function raiseHunterFamilyPrompts(){
       if(game.hunterFamilyOpen===true)return;
       const pair=hunterWeddingCouple();
@@ -12520,9 +12674,15 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
       const hunter=pair.hunter,bride=pair.bride;
       if(hunter.alive===false||bride.alive===false)return;
       if(document.querySelector('.modal-backdrop.open'))return;   /* 有别的弹窗就下个月再说 */
+      const brideInZhonggong=(bride.district||'中宫')==='中宫';
+      const hunterInZhonggong=(hunter.district||'中宫')==='中宫';
       const born=hunterWeddingChildCount(bride,hunter);
-      if(born>=1&&bride.district!=='中宫'&&bride.hunterZhonggongAnswered!==true){ openHunterFamilyModal('plead'); return; }
-      if(bride.district==='中宫'&&Number(hunter.hunterZhonggongMonths||0)<=0&&hunter.hunterZhonggongAnswered!==true){ openHunterFamilyModal('hunter'); }
+      if(brideInZhonggong&&hunterInZhonggong&&bride.hunterEvictAskAnswered!==true){ openHunterFamilyModal('evict'); return; }
+      if(born>=1&&!brideInZhonggong&&bride.hunterZhonggongAnswered!==true){ openHunterFamilyModal('plead'); return; }
+      if(brideInZhonggong&&!hunterInZhonggong&&Number(hunter.hunterZhonggongMonths||0)<=0){
+        const lastAsk=Number(hunter.hunterZhonggongAskMonth||0);
+        if(!lastAsk||monthIndex()-lastAsk>=HUNTER_ZHONGGONG_ASK_INTERVAL)openHunterFamilyModal('hunter');
+      }
     }
     /* —— 那一个月里：他对主控只显示「……」，好感度一点不涨；亲热有机会让他怀孕 —— */
     function hunterIsVisitingZhonggong(person){
@@ -12677,14 +12837,27 @@ if(inheritedOpen&&pending.child.inheritedDecision===true){const inheritedIsMothe
        · 丧夭夭死亡 / 被驱逐 ⇒ 猎人自杀，跟着她一起离开。
        · 她生下别人的孩子 ⇒ 猎人显示很开心（写进他自己的日记）。
        · 猎人除非被女主控插足，否则不和任何居民调情 / 亲热（社交与亲热两条路都拦掉）。
-       · 固定 NPC 不能被献祭：祭坛提示「这个能力太强大了，吃了会撑坏」。 */
-    const ALTAR_OVERPOWERED_REFUSAL='这个能力太强大了，吃了会撑坏';
+       · 固定 NPC **本人**（圣女 / 圣骑士 / 丧夭夭 / 猎人）喂不进去，但**祭坛不出声**（不再提示「能力太强」）；
+         他们的孩子（猎人的儿子、圣女 / 圣骑士的血脉后代）照常可以喂。
+         判定见 isSacrificablePerson / isAltarIndigestible / isAltarFixedNpcSelf。 */
     const HUNTER_PACT_LINES={
       follows:()=>`猎人跟着${ZOMBIE_NAME}一起离开了。他没有回头。`,
       happy:childName=>`${ZOMBIE_NAME}生下了${childName}。猎人看着那个孩子，笑得很开心。`
     };
-    /* 祭坛吃不下的人：固定 NPC（圣女 / 圣骑士 / 丧夭夭 / 猎人）—— 见 isSacrificablePerson / isAltarIndigestible */
-    function isAltarOverpoweredPerson(person){ return !!person&&isReplacementFixedNpc(person); }
+    /* 祭坛吃不下的人：固定 NPC **本人**（圣女 / 圣骑士 / 丧夭夭 / 猎人）——
+       见 isSacrificablePerson / isAltarIndigestible。
+       与他们血脉上的后代要区分开：孩子（圣女库完全体的大女儿 / 圣女血脉的女儿 / 信徒儿子 / 猎人的儿子…
+       也就是带 avatar.saintFull / saintFeatures / paladinFeatures / hunterFeatures 的那些人）**可以**献祭，
+       所以这里不能复用 isReplacementFixedNpc —— 它把 avatar.saintFull 这类血脉标记也算成了固定 NPC。 */
+    function isAltarFixedNpcSelf(person){
+      if(!person)return false;
+      if(person.fixedNpc===true)return true;                                  /* 开局那四位固定 NPC 都带这个标记 */
+      if(person.saint===true||person.paladin===true||person.zombie===true||person.hunter===true)return true;
+      const avatar=person.avatar||{};
+      /* avatar.saint 是圣女本人；**不认 avatar.saintFull** —— 那是「圣女库完全体」的女儿，是后代 */
+      return !!(avatar.saint||avatar.paladin||avatar.zombie||avatar.hunter);
+    }
+    function isAltarOverpoweredPerson(person){ return !!person&&isAltarFixedNpcSelf(person); }
     function hunterPactMonthlyTick(){
       const pair=hunterWeddingCouple();
       if(!pair)return;
